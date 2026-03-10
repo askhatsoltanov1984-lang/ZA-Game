@@ -617,9 +617,7 @@ io.on('connection', (socket) => {
       if (idx === -1) { socket.emit('invalid_move', { reason: 'У вас нет такой карты' }); return; }
       handCopy.splice(idx, 1);
     }
-    if (room.isFirstTurn && socket.id === room.firstTurnPlayerId) {
-      if (!cardIds.includes('4s')) { socket.emit('invalid_move', { reason: 'Первый ход должен включать 4\u2660' }); return; }
-    }
+    // First turn player (holder of 4♠) can play any valid combination — no forced card
     const result = validatePlay(cardIds, room.tableCombo);
     if (!result.valid) { socket.emit('invalid_move', { reason: result.error }); return; }
     for (const cid of cardIds) { const idx = hand.indexOf(cid); if (idx !== -1) hand.splice(idx, 1); }
