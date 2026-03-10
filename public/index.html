@@ -175,14 +175,14 @@ input::placeholder { color: #5a8a6a; }
 
 /* FIX 5: observer banner */
 .observer-banner {
-  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-  background: rgba(76,175,80,0.9); color: #fff; padding: 8px 20px; border-radius: 8px;
-  font-size: 13px; font-weight: 600; z-index: 50;
+  position: fixed; bottom: 70px; right: 12px;
+  background: rgba(76,175,80,0.9); color: #fff; padding: 3px 8px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; z-index: 80;
 }
 
 /* Player hand */
 .hand-area {
-  padding: 8px 16px 80px; display: flex; flex-direction: column; align-items: center;
+  padding: 8px 16px 100px; display: flex; flex-direction: column; align-items: center;
   z-index: 3; background: linear-gradient(transparent, rgba(0,0,0,0.3));
 }
 .hand-cards {
@@ -205,6 +205,21 @@ input::placeholder { color: #5a8a6a; }
 }
 .btn-pass { background: #555; color: #eee; }
 .btn-pass:hover { background: #666; }
+
+/* FIX 3: observer action buttons */
+.observer-actions {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; gap: 10px; justify-content: center;
+  padding: 10px 16px; padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: rgba(15,46,26,0.95); z-index: 90;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.observer-actions .btn { width: auto; min-width: 140px; font-size: 15px; padding: 12px 20px; }
+.btn-queue { background: #3a8a4a; color: #fff; }
+.btn-queue:hover { background: #4a9a5a; }
+.btn-queue:disabled { background: #2a5a2a; color: #8ab89a; cursor: not-allowed; }
+.btn-menu { background: #555; color: #eee; }
+.btn-menu:hover { background: #666; }
 
 /* FIX 12: autopass */
 .btn-autopass { background: #333; color: #aaa; font-size: 13px !important; min-width: 90px !important; min-height: 40px !important; padding: 8px 12px !important; }
@@ -325,7 +340,7 @@ input::placeholder { color: #5a8a6a; }
   .card .suit { font-size: 10px; }
 }
 @media (orientation: landscape) {
-  .hand-area { padding: 4px 8px 50px; }
+  .hand-area { padding: 4px 8px 80px; }
   .hand-cards { padding: 4px 4px 2px; }
   .card { height: 54px; }
   .card .rank { font-size: 12px; }
@@ -398,6 +413,10 @@ input::placeholder { color: #5a8a6a; }
     <button class="btn btn-autopass" id="autopass-btn">Автопас</button>
   </div>
   <div class="game-log" id="game-log"></div>
+  <div class="observer-actions" id="observer-actions" style="display:none">
+    <button class="btn btn-queue" id="queue-btn">Встать в очередь</button>
+    <button class="btn btn-menu" id="menu-btn">В меню</button>
+  </div>
 </div>
 
 <!-- END SCREEN -->
@@ -521,6 +540,22 @@ $('autopass-btn').onclick = () => {
 
 $('play-again-btn').onclick = () => { socket.emit('play_again'); };
 
+// FIX 3: observer action buttons
+$('queue-btn').onclick = () => {
+  socket.emit('join_queue', { roomCode: state.roomCode, nickname: localStorage.getItem('za_player_name') || 'Player' });
+  $('queue-btn').textContent = 'Вы в очереди — ждите следующей раздачи';
+  $('queue-btn').disabled = true;
+};
+$('menu-btn').onclick = () => {
+  socket.disconnect();
+  socket.connect();
+  state.roomCode = null;
+  state.isObserverMode = false;
+  document.querySelectorAll('.observer-banner,.autopass-banner').forEach(e => e.remove());
+  $('observer-actions').style.display = 'none';
+  showScreen('home-screen');
+};
+
 function showToast(msg) {
   const el = document.createElement('div');
   el.className = 'toast';
@@ -617,7 +652,23 @@ function renderRoomList(rooms) {
 function renderOpponents() {
   const row = $('opponents-row');
   row.innerHTML = '';
-  const opponents = state.players.filter(p => p.id !== state.myId);
+  // FIX 2: order opponents clockwise — next-in-turn on the LEFT
+  let opponents;
+  if (state.turnOrder.length > 0) {
+    const myIdx = state.turnOrder.indexOf(state.myId);
+    opponents = [];
+    for (let i = 1; i < state.turnOrder.length; i++) {
+      const id = state.turnOrder[(myIdx + i) % state.turnOrder.length];
+      const p = state.players.find(pl => pl.id === id);
+      if (p) opponents.push(p);
+    }
+    // Add any players not in turnOrder (e.g. late joins)
+    state.players.forEach(p => {
+      if (p.id !== state.myId && !opponents.some(o => o.id === p.id)) opponents.push(p);
+    });
+  } else {
+    opponents = state.players.filter(p => p.id !== state.myId);
+  }
   opponents.forEach(p => {
     const div = document.createElement('div');
     div.className = 'opponent';
@@ -921,6 +972,9 @@ socket.on('observer_joined', ({ roomCode }) => {
   state.isObserverMode = true;
   showScreen('game-screen');
   $('action-bar').style.display = 'none';
+  $('observer-actions').style.display = 'flex';
+  $('queue-btn').textContent = 'Встать в очередь';
+  $('queue-btn').disabled = false;
 });
 
 socket.on('observer_update', (data) => {
@@ -928,11 +982,13 @@ socket.on('observer_update', (data) => {
   state.tableComboName = data.tableComboName;
   state.players = data.players;
   state.currentPlayerId = data.currentPlayerId;
+  state.turnOrder = data.turnOrder || state.turnOrder;
   state.timerSeconds = data.timerSeconds || 0;
   state.yourHand = [];
   state.isObserverMode = true;
   renderGame();
   $('action-bar').style.display = 'none';
+  $('observer-actions').style.display = 'flex';
   // Show observer banner
   document.querySelectorAll('.observer-banner').forEach(e => e.remove());
   const b = document.createElement('div');
@@ -959,6 +1015,7 @@ socket.on('game_started', ({ yourHand, currentPlayerId, turnOrder, players, isFi
   state.firstTurnPlayerId = firstTurnPlayerId || null;
   $('game-log').innerHTML = '';
   $('action-bar').style.display = 'flex';
+  $('observer-actions').style.display = 'none';
   showScreen('game-screen');
   addLog('Игра началась!', true);
   renderGame();
