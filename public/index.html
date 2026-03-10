@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ZA — Карточная игра</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+/* === RESET & BASE === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: #0f2e1a;
+  color: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === SCREENS === */
+.screen { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
+.screen.active { display: flex; }
+
+/* === HOME SCREEN === */
+#home-screen {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
+  gap: 20px;
+}
+.logo { font-size: 96px; font-weight: 900; color: #f0c040; text-shadow: 0 4px 20px rgba(240,192,64,0.4); letter-spacing: 12px; }
+.logo-sub { font-size: 14px; color: #8ab89a; margin-top: -10px; letter-spacing: 4px; text-transform: uppercase; }
+.home-form { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 30px; width: 300px; }
+input {
+  width: 100%; padding: 12px 16px; border-radius: 8px; border: 2px solid #2a6a3a;
+  background: #0d2216; color: #eee; font-size: 16px; font-family: 'Montserrat', sans-serif;
+  outline: none; transition: border-color 0.2s;
+}
+input:focus { border-color: #f0c040; }
+input::placeholder { color: #5a8a6a; }
+.btn {
+  padding: 12px 24px; border-radius: 8px; border: none; font-size: 16px; font-weight: 700;
+  font-family: 'Montserrat', sans-serif; cursor: pointer; transition: all 0.2s; width: 100%;
+}
+.btn-primary { background: #f0c040; color: #111; }
+.btn-primary:hover { background: #f5d060; transform: translateY(-1px); }
+.btn-primary:disabled { background: #5a5a3a; color: #888; cursor: not-allowed; transform: none; }
+.btn-secondary { background: #2a6a3a; color: #eee; }
+.btn-secondary:hover { background: #3a8a4a; }
+.join-section { display: none; width: 100%; gap: 8px; flex-direction: column; }
+.join-section.show { display: flex; }
+.btn-small { padding: 8px 16px; font-size: 14px; }
+.error-msg { color: #ff6b6b; font-size: 13px; min-height: 20px; text-align: center; }
+
+/* === LOBBY SCREEN === */
+#lobby-screen {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
+  gap: 16px;
+}
+.room-code { font-size: 48px; font-weight: 900; color: #f0c040; letter-spacing: 8px; }
+.copy-link-btn {
+  background: none; border: 1px solid #f0c040; color: #f0c040; padding: 8px 20px;
+  border-radius: 6px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 13px;
+  transition: all 0.2s;
+}
+.copy-link-btn:hover { background: rgba(240,192,64,0.1); }
+.copy-link-btn.copied { border-color: #4caf50; color: #4caf50; }
+.player-list {
+  list-style: none; width: 320px; margin: 16px 0;
+  background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px;
+}
+.player-list li {
+  padding: 10px 14px; border-radius: 6px; display: flex; align-items: center; gap: 10px;
+  font-size: 15px;
+}
+.player-list li + li { border-top: 1px solid rgba(255,255,255,0.05); }
+.host-badge {
+  background: #f0c040; color: #111; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px; text-transform: uppercase;
+}
+.lobby-status { color: #8ab89a; font-size: 14px; }
+.lobby-back { position: absolute; top: 20px; left: 20px; background: none; border: none; color: #8ab89a; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 14px; }
+
+/* === GAME SCREEN === */
+#game-screen {
+  flex-direction: column;
+  background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Other players */
+.opponents-row {
+  display: flex; justify-content: center; gap: 16px; padding: 10px 16px;
+  flex-wrap: wrap; z-index: 2;
+}
+.opponent {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 12px; border-radius: 10px; background: rgba(0,0,0,0.2); min-width: 70px;
+  transition: all 0.3s;
+}
+.opponent.current-turn { background: rgba(240,192,64,0.15); box-shadow: 0 0 12px rgba(240,192,64,0.3); }
+.opponent.finished { opacity: 0.4; }
+.opponent-cards { display: flex; gap: -4px; }
+.card-back {
+  width: 18px; height: 26px; background: linear-gradient(135deg, #c0392b, #8e2320);
+  border-radius: 3px; border: 1px solid #a33; margin-left: -6px;
+}
+.card-back:first-child { margin-left: 0; }
+.opponent-name { font-size: 11px; color: #ccc; white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+.opponent-count { font-size: 10px; color: #f0c040; font-weight: 700; }
+
+/* Table center */
+.table-center {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; z-index: 1; position: relative;
+}
+.table-cards { display: flex; gap: 6px; align-items: center; min-height: 100px; flex-wrap: wrap; justify-content: center; }
+.combo-label {
+  font-size: 20px; font-weight: 900; color: #f0c040; margin-top: 10px;
+  text-shadow: 0 2px 10px rgba(240,192,64,0.5); text-align: center;
+}
+.combo-flash {
+  animation: comboFlash 0.6s ease-out;
+}
+@keyframes comboFlash {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.trick-msg {
+  position: absolute; font-size: 18px; font-weight: 700; color: #4caf50;
+  animation: trickFade 2s forwards; pointer-events: none;
+}
+@keyframes trickFade {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-30px); }
+}
+.new-trick-label { font-size: 14px; color: #8ab89a; }
+
+/* Player hand */
+.hand-area {
+  padding: 8px 16px 4px; display: flex; flex-direction: column; align-items: center;
+  z-index: 3; background: linear-gradient(transparent, rgba(0,0,0,0.3));
+}
+.hand-cards {
+  display: flex; justify-content: center; gap: 2px; flex-wrap: nowrap;
+  overflow-x: auto; max-width: 100vw; padding: 8px 4px 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.action-bar {
+  display: flex; gap: 10px; padding: 6px 0 10px; justify-content: center;
+}
+.action-bar .btn { width: auto; min-width: 120px; font-size: 15px; padding: 10px 20px; }
+.btn-pass { background: #555; color: #eee; }
+.btn-pass:hover { background: #666; }
+.turn-indicator {
+  font-size: 13px; padding: 4px 12px; border-radius: 20px; margin-bottom: 4px;
+  background: rgba(240,192,64,0.15); color: #f0c040; font-weight: 600;
+}
+.turn-indicator.your-turn { background: rgba(240,192,64,0.25); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* Cards */
+.card {
+  width: 52px; height: 74px; background: #fafafa; border-radius: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3); flex-shrink: 0;
+  user-select: none; -webkit-user-select: none; border: 2px solid transparent;
+}
+.card:hover { transform: translateY(-4px); }
+.card.selected { transform: translateY(-14px); box-shadow: 0 6px 16px rgba(240,192,64,0.4); border-color: #f0c040; }
+.card .rank { font-size: 16px; font-weight: 900; line-height: 1; }
+.card .suit { font-size: 14px; line-height: 1; }
+.card.red .rank, .card.red .suit { color: #c0392b; }
+.card.black .rank, .card.black .suit { color: #222; }
+.card.joker { background: linear-gradient(135deg, #f0c040, #e6a817); }
+.card.joker .rank { color: #111; font-size: 12px; }
+.card.joker .suit { color: #111; font-size: 18px; }
+.table-card { cursor: default; }
+.table-card:hover { transform: none; }
+
+/* Shake animation for invalid move */
+.shake { animation: shake 0.4s ease-in-out; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.invalid-tooltip {
+  position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%);
+  background: #e74c3c; color: white; padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; z-index: 100; animation: tooltipFade 2s forwards;
+  white-space: nowrap;
+}
+@keyframes tooltipFade {
+  0%,70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Game log */
+.game-log {
+  position: absolute; bottom: 160px; right: 10px; width: 220px; max-height: 180px;
+  overflow-y: auto; z-index: 10; display: flex; flex-direction: column; gap: 2px;
+  font-size: 11px; pointer-events: none;
+}
+.log-entry { padding: 3px 8px; background: rgba(0,0,0,0.4); border-radius: 4px; color: #aaa; }
+.log-entry.highlight { color: #f0c040; }
+
+/* === END SCREEN === */
+#end-screen {
+  flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
+  gap: 20px;
+}
+.end-title { font-size: 36px; font-weight: 900; color: #f0c040; }
+.standings-list { list-style: none; width: 300px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 16px; }
+.standings-list li {
+  padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+  font-size: 16px; border-radius: 6px;
+}
+.standings-list li + li { border-top: 1px solid rgba(255,255,255,0.05); }
+.place-medal { font-size: 24px; width: 32px; text-align: center; }
+.place-num { font-size: 14px; color: #888; width: 32px; text-align: center; }
+
+/* === RESPONSIVE === */
+@media (max-width: 600px) {
+  .logo { font-size: 64px; }
+  .home-form { width: 260px; }
+  .room-code { font-size: 36px; }
+  .player-list { width: 280px; }
+  .card { width: 42px; height: 62px; }
+  .card .rank { font-size: 14px; }
+  .card .suit { font-size: 12px; }
+  .game-log { display: none; }
+  .opponent { min-width: 56px; padding: 6px 8px; }
+  .combo-label { font-size: 16px; }
+  .action-bar .btn { min-width: 100px; font-size: 14px; padding: 8px 14px; }
+}
+
+@media (max-width: 380px) {
+  .card { width: 36px; height: 54px; }
+  .card .rank { font-size: 12px; }
+  .card .suit { font-size: 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- === HOME SCREEN === -->
+<div id="home-screen" class="screen active">
+  <div class="logo">ZA</div>
+  <div class="logo-sub">Карточная игра</div>
+  <div class="home-form">
+    <input type="text" id="nickname-input" placeholder="Ваш никнейм" maxlength="20" autocomplete="off">
+    <div class="error-msg" id="home-error"></div>
+    <button class="btn btn-primary" id="create-room-btn">Создать комнату</button>
+    <button class="btn btn-secondary" id="show-join-btn">Войти по коду</button>
+    <div class="join-section" id="join-section">
+      <input type="text" id="room-code-input" placeholder="Код комнаты (ZA-XXXX)" maxlength="7" autocomplete="off" style="text-transform:uppercase">
+      <button class="btn btn-primary" id="join-room-btn">Войти</button>
+    </div>
+  </div>
+</div>
+
+<!-- === LOBBY SCREEN === -->
+<div id="lobby-screen" class="screen">
+  <button class="lobby-back" id="lobby-back-btn">&larr; Назад</button>
+  <div class="room-code" id="lobby-room-code">ZA-XXXX</div>
+  <button class="copy-link-btn" id="copy-link-btn">Скопировать ссылку</button>
+  <ul class="player-list" id="player-list"></ul>
+  <div class="lobby-status" id="lobby-status">Ожидание игроков...</div>
+  <button class="btn btn-primary" id="start-game-btn" style="width:300px" disabled>Начать игру</button>
+</div>
+
+<!-- === GAME SCREEN === -->
+<div id="game-screen" class="screen">
+  <div class="opponents-row" id="opponents-row"></div>
+  <div class="table-center">
+    <div class="table-cards" id="table-cards"></div>
+    <div class="combo-label" id="combo-label"></div>
+  </div>
+  <div class="hand-area">
+    <div class="turn-indicator" id="turn-indicator"></div>
+    <div class="hand-cards" id="hand-cards"></div>
+    <div class="action-bar">
+      <button class="btn btn-primary" id="play-btn" disabled>Сыграть</button>
+      <button class="btn btn-pass" id="pass-btn">Пас</button>
+    </div>
+  </div>
+  <div class="game-log" id="game-log"></div>
+</div>
+
+<!-- === END SCREEN === -->
+<div id="end-screen" class="screen">
+  <div class="end-title">Игра окончена!</div>
+  <ul class="standings-list" id="standings-list"></ul>
+  <button class="btn btn-primary" id="play-again-btn" style="width:300px">Играть снова</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// === SOCKET & STATE ===
+const socket = io();
+
+const state = {
+  myId: null,
+  roomCode: null,
+  isHost: false,
+  players: [],
+  yourHand: [],
+  selectedCards: [],
+  tableCombo: null,
+  tableComboName: '',
+  currentPlayerId: null,
+  turnOrder: [],
+  standings: [],
+};
+
+// === CONSTANTS ===
+const RANK_VALUE = { '4':1,'5':2,'6':3,'7':4,'8':5,'9':6,'10':7,'J':8,'Q':9,'K':10,'A':11,'2':12,'3':13,'JOK':14 };
+const SUIT_SYMBOLS = { s: '\u2660', h: '\u2665', d: '\u2666', c: '\u2663' };
+const COMBO_TYPES = { SINGLE:'single', PAIR:'pair', STRAIGHT:'straight', ZA:'za', PO:'po', VANGOG:'vangog' };
+
+function getCardRank(id) {
+  if (id.startsWith('JOK')) return 'JOK';
+  if (id.startsWith('10')) return '10';
+  return id.slice(0, -1);
+}
+function getCardSuit(id) {
+  if (id.startsWith('JOK')) return null;
+  if (id.startsWith('10')) return id.slice(2);
+  return id.slice(-1);
+}
+function getCardValue(id) { return RANK_VALUE[getCardRank(id)]; }
+
+// === SCREEN MANAGEMENT ===
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// === UI ELEMENTS ===
+const $ = id => document.getElementById(id);
+
+// === HOME SCREEN ===
+$('show-join-btn').onclick = () => {
+  $('join-section').classList.toggle('show');
+};
+
+$('create-room-btn').onclick = () => {
+  const nick = $('nickname-input').value.trim();
+  if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
+  $('home-error').textContent = '';
+  socket.emit('create_room', { nickname: nick, maxPlayers: 8 });
+};
+
+$('join-room-btn').onclick = () => {
+  const nick = $('nickname-input').value.trim();
+  const code = $('room-code-input').value.trim().toUpperCase();
+  if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
+  if (!code) { $('home-error').textContent = 'Введите код комнаты'; return; }
+  $('home-error').textContent = '';
+  socket.emit('join_room', { roomCode: code, nickname: nick });
+};
+
+$('nickname-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('create-room-btn').click();
+});
+$('room-code-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('join-room-btn').click();
+});
+
+// === LOBBY SCREEN ===
+$('copy-link-btn').onclick = () => {
+  const url = window.location.origin + '/?room=' + state.roomCode;
+  navigator.clipboard.writeText(url).then(() => {
+    $('copy-link-btn').textContent = 'Скопировано!';
+    $('copy-link-btn').classList.add('copied');
+    setTimeout(() => {
+      $('copy-link-btn').textContent = 'Скопировать ссылку';
+      $('copy-link-btn').classList.remove('copied');
+    }, 2000);
+  });
+};
+
+$('start-game-btn').onclick = () => {
+  socket.emit('start_game');
+};
+
+$('lobby-back-btn').onclick = () => {
+  showScreen('home-screen');
+};
+
+// === GAME SCREEN ===
+$('play-btn').onclick = () => {
+  if (state.selectedCards.length === 0) return;
+  socket.emit('play_cards', { cardIds: state.selectedCards });
+};
+
+$('pass-btn').onclick = () => {
+  socket.emit('pass_turn');
+};
+
+// === END SCREEN ===
+$('play-again-btn').onclick = () => {
+  socket.emit('play_again');
+};
+
+// === CARD RENDERING ===
+function createCardEl(cardId, opts = {}) {
+  const el = document.createElement('div');
+  el.className = 'card';
+  if (opts.tableCard) el.classList.add('table-card');
+
+  const rank = getCardRank(cardId);
+  const suit = getCardSuit(cardId);
+
+  if (rank === 'JOK') {
+    el.classList.add('joker');
+    el.innerHTML = '<span class="suit">\u2605</span><span class="rank">JOKER</span>';
+    return el;
+  }
+
+  const isRed = suit === 'h' || suit === 'd';
+  el.classList.add(isRed ? 'red' : 'black');
+  el.innerHTML = `<span class="rank">${rank}</span><span class="suit">${SUIT_SYMBOLS[suit] || ''}</span>`;
+  return el;
+}
+
+// === RENDER FUNCTIONS ===
+function renderLobby() {
+  $('lobby-room-code').textContent = state.roomCode;
+  const list = $('player-list');
+  list.innerHTML = '';
+  state.players.forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = p.nickname;
+    if (p.isHost) {
+      const badge = document.createElement('span');
+      badge.className = 'host-badge';
+      badge.textContent = 'ХОСТ';
+      li.appendChild(badge);
+    }
+    list.appendChild(li);
+  });
+
+  const count = state.players.length;
+  $('lobby-status').textContent = count < 3
+    ? `Ожидание игроков... (${count}/3 минимум)`
+    : `Игроков: ${count} — Готово!`;
+
+  $('start-game-btn').disabled = !state.isHost || count < 3;
+  $('start-game-btn').textContent = state.isHost ? 'Начать игру' : 'Ожидание хоста...';
+}
+
+function renderOpponents() {
+  const row = $('opponents-row');
+  row.innerHTML = '';
+  const opponents = state.players.filter(p => p.id !== state.myId);
+  opponents.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'opponent';
+    if (p.id === state.currentPlayerId) div.classList.add('current-turn');
+    if (p.finished) div.classList.add('finished');
+
+    const cardsDiv = document.createElement('div');
+    cardsDiv.className = 'opponent-cards';
+    const count = Math.min(p.cardCount, 10);
+    for (let i = 0; i < count; i++) {
+      const back = document.createElement('div');
+      back.className = 'card-back';
+      cardsDiv.appendChild(back);
+    }
+
+    const name = document.createElement('div');
+    name.className = 'opponent-name';
+    name.textContent = p.nickname;
+
+    const countEl = document.createElement('div');
+    countEl.className = 'opponent-count';
+    countEl.textContent = p.finished ? 'Вышел' : `${p.cardCount} карт`;
+
+    div.appendChild(cardsDiv);
+    div.appendChild(name);
+    div.appendChild(countEl);
+    row.appendChild(div);
+  });
+}
+
+function renderTableCards() {
+  const container = $('table-cards');
+  const label = $('combo-label');
+  container.innerHTML = '';
+
+  if (!state.tableCombo) {
+    label.textContent = '';
+    const newLabel = document.createElement('div');
+    newLabel.className = 'new-trick-label';
+    newLabel.textContent = 'Новый раунд — ходите!';
+    container.appendChild(newLabel);
+    return;
+  }
+
+  state.tableCombo.cards.forEach(cid => {
+    container.appendChild(createCardEl(cid, { tableCard: true }));
+  });
+
+  label.textContent = state.tableComboName;
+  label.classList.remove('combo-flash');
+  void label.offsetWidth;
+  label.classList.add('combo-flash');
+}
+
+function renderHand() {
+  const container = $('hand-cards');
+  container.innerHTML = '';
+
+  const sorted = [...state.yourHand].sort((a, b) => getCardValue(a) - getCardValue(b));
+
+  sorted.forEach(cardId => {
+    const el = createCardEl(cardId);
+    if (state.selectedCards.includes(cardId)) el.classList.add('selected');
+
+    el.onclick = () => {
+      const idx = state.selectedCards.indexOf(cardId);
+      if (idx === -1) {
+        state.selectedCards.push(cardId);
+      } else {
+        state.selectedCards.splice(idx, 1);
+      }
+      renderHand();
+      updatePlayButton();
+    };
+
+    container.appendChild(el);
+  });
+}
+
+function updatePlayButton() {
+  const isMyTurn = state.currentPlayerId === state.myId;
+  const hasSelection = state.selectedCards.length > 0;
+  $('play-btn').disabled = !isMyTurn || !hasSelection;
+  $('pass-btn').disabled = !isMyTurn || !state.tableCombo;
+}
+
+function renderTurnIndicator() {
+  const el = $('turn-indicator');
+  if (state.currentPlayerId === state.myId) {
+    el.textContent = 'Ваш ход!';
+    el.className = 'turn-indicator your-turn';
+  } else {
+    const p = state.players.find(pl => pl.id === state.currentPlayerId);
+    el.textContent = p ? `Ходит: ${p.nickname}` : '';
+    el.className = 'turn-indicator';
+  }
+}
+
+function renderGame() {
+  renderOpponents();
+  renderTableCards();
+  renderHand();
+  renderTurnIndicator();
+  updatePlayButton();
+}
+
+function addLog(text, highlight = false) {
+  const log = $('game-log');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry' + (highlight ? ' highlight' : '');
+  entry.textContent = text;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+
+  // Keep max 50 entries
+  while (log.children.length > 50) log.removeChild(log.firstChild);
+}
+
+function showInvalidTooltip(msg) {
+  const existing = document.querySelector('.invalid-tooltip');
+  if (existing) existing.remove();
+
+  const el = document.createElement('div');
+  el.className = 'invalid-tooltip';
+  el.textContent = msg;
+  document.body.appendChild(el);
+
+  const hand = $('hand-cards');
+  hand.classList.add('shake');
+  setTimeout(() => hand.classList.remove('shake'), 400);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function showTrickWon(nickname) {
+  const el = document.createElement('div');
+  el.className = 'trick-msg';
+  el.textContent = `${nickname} забирает!`;
+  document.querySelector('.table-center').appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function renderStandings() {
+  const list = $('standings-list');
+  list.innerHTML = '';
+  const medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49'];
+  state.standings.forEach((s, i) => {
+    const li = document.createElement('li');
+    if (i < 3) {
+      li.innerHTML = `<span class="place-medal">${medals[i]}</span><span>${s.nickname}</span>`;
+    } else {
+      li.innerHTML = `<span class="place-num">${s.place}</span><span>${s.nickname}</span>`;
+    }
+    list.appendChild(li);
+  });
+}
+
+// === SOCKET EVENTS ===
+
+socket.on('connect', () => {
+  state.myId = socket.id;
+});
+
+socket.on('room_created', ({ roomCode }) => {
+  state.roomCode = roomCode;
+  state.isHost = true;
+  showScreen('lobby-screen');
+  renderLobby();
+});
+
+socket.on('room_joined', ({ roomCode }) => {
+  state.roomCode = roomCode;
+  state.isHost = false;
+  showScreen('lobby-screen');
+  renderLobby();
+});
+
+socket.on('room_updated', ({ players }) => {
+  state.players = players;
+  const me = players.find(p => p.id === state.myId);
+  if (me) state.isHost = me.isHost;
+  renderLobby();
+});
+
+socket.on('game_started', ({ yourHand, currentPlayerId, turnOrder, players }) => {
+  state.yourHand = yourHand;
+  state.currentPlayerId = currentPlayerId;
+  state.turnOrder = turnOrder;
+  state.players = players;
+  state.selectedCards = [];
+  state.tableCombo = null;
+  state.tableComboName = '';
+  $('game-log').innerHTML = '';
+  showScreen('game-screen');
+  addLog('Игра началась!', true);
+  renderGame();
+});
+
+socket.on('state_update', (data) => {
+  state.yourHand = data.yourHand;
+  state.tableCombo = data.tableCombo;
+  state.tableComboName = data.tableComboName;
+  state.players = data.players;
+  state.currentPlayerId = data.currentPlayerId;
+  // Remove selected cards that are no longer in hand
+  state.selectedCards = state.selectedCards.filter(c => state.yourHand.includes(c));
+  renderGame();
+});
+
+socket.on('player_played', ({ playerId, nickname, comboName, comboCards, comboType }) => {
+  addLog(`${nickname}: ${comboName}`, comboType === 'za' || comboType === 'po' || comboType === 'vangog');
+});
+
+socket.on('player_passed', ({ playerId, nickname }) => {
+  addLog(`${nickname} пасует`);
+});
+
+socket.on('player_finished', ({ nickname, place }) => {
+  addLog(`${nickname} вышел (${place} место)!`, true);
+});
+
+socket.on('trick_won', ({ playerId, nickname }) => {
+  addLog(`${nickname} забирает раунд!`, true);
+  showTrickWon(nickname);
+});
+
+socket.on('game_over', ({ standings }) => {
+  state.standings = standings;
+  showScreen('end-screen');
+  renderStandings();
+  // Only host can restart
+  $('play-again-btn').style.display = state.isHost ? 'block' : 'none';
+});
+
+socket.on('back_to_lobby', ({ players }) => {
+  state.players = players;
+  state.tableCombo = null;
+  state.tableComboName = '';
+  state.yourHand = [];
+  state.selectedCards = [];
+  showScreen('lobby-screen');
+  renderLobby();
+});
+
+socket.on('invalid_move', ({ reason }) => {
+  showInvalidTooltip(reason);
+});
+
+socket.on('error', ({ message }) => {
+  $('home-error').textContent = message;
+});
+
+// === URL PARAM AUTO-JOIN ===
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = params.get('room');
+  if (roomParam) {
+    $('room-code-input').value = roomParam.toUpperCase();
+    $('join-section').classList.add('show');
+  }
+});
+</script>
+</body>
+</html>
