@@ -190,10 +190,6 @@ input::placeholder { color: #5a8a6a; }
   overflow-x: auto; max-width: 100vw; padding: 8px 4px 4px;
   -webkit-overflow-scrolling: touch;
 }
-/* FIX 3: drag & drop */
-.hand-cards .card.drag-over-left { border-left: 3px solid #f0c040; }
-.hand-cards .card.drag-over-right { border-right: 3px solid #f0c040; }
-.hand-cards .card.dragging { opacity: 0.4; }
 
 /* FIX 1: fixed action bar */
 .action-bar {
@@ -328,6 +324,23 @@ input::placeholder { color: #5a8a6a; }
   .card .rank { font-size: 12px; }
   .card .suit { font-size: 10px; }
 }
+@media (orientation: landscape) {
+  .hand-area { padding: 4px 8px 50px; }
+  .hand-cards { padding: 4px 4px 2px; }
+  .card { height: 54px; }
+  .card .rank { font-size: 12px; }
+  .card .suit { font-size: 10px; }
+  .card.selected { transform: translateY(-10px); }
+  .action-bar .btn { min-height: 44px; font-size: 15px; padding: 10px 18px; }
+  .btn-autopass { min-height: 34px !important; font-size: 11px !important; padding: 6px 10px !important; }
+  .turn-indicator { font-size: 11px; padding: 2px 10px; }
+  .turn-status-center { font-size: 16px; }
+  .combo-label { font-size: 14px; }
+  .opponents-row { padding: 6px 10px; gap: 10px; }
+  .opponent { padding: 4px 8px; min-width: 50px; }
+  .opponent-name { font-size: 10px; }
+  .timer-seconds { font-size: 12px; }
+}
 </style>
 </head>
 <body>
@@ -403,7 +416,7 @@ const state = {
   myId: null, roomCode: null, isHost: false, players: [], yourHand: [],
   selectedCards: [], tableCombo: null, tableComboName: '', currentPlayerId: null,
   turnOrder: [], standings: [], timerSeconds: 30, isObserving: false,
-  autopass: false, isObserverMode: false, handOrder: [],
+  autopass: false, isObserverMode: false,
   isFirstTurn: false, firstTurnPlayerId: null,
 };
 
@@ -654,30 +667,21 @@ function renderTableCards() {
   label.classList.add('combo-flash');
 }
 
-// FIX 3: drag & drop for hand reorder
-let dragSrcIndex = null;
-
 function renderHand() {
   const container = $('hand-cards');
   container.innerHTML = '';
 
-  // Build ordered hand: use handOrder if valid, else sort
-  let ordered;
-  if (state.handOrder.length > 0 && state.handOrder.length === state.yourHand.length &&
-      state.handOrder.every(c => state.yourHand.includes(c))) {
-    ordered = state.handOrder;
-  } else {
-    ordered = [...state.yourHand].sort((a, b) => getCardValue(a) - getCardValue(b));
-    state.handOrder = [...ordered];
-  }
+  // Fixed order: sort by rank ascending
+  const sorted = [...state.yourHand].sort((a, b) => getCardValue(a) - getCardValue(b));
+  const n = sorted.length;
+  const cardWidth = n > 0 ? `min(60px, calc(100vw / ${n} - 4px))` : '60px';
 
-  ordered.forEach((cardId, idx) => {
+  sorted.forEach((cardId) => {
     const el = createCardEl(cardId);
     if (state.selectedCards.includes(cardId)) el.classList.add('selected');
-    el.setAttribute('draggable', 'true');
-    el.dataset.idx = idx;
+    el.style.width = cardWidth;
 
-    // Click to select
+    // Tap to select
     el.onclick = () => {
       const i = state.selectedCards.indexOf(cardId);
       if (i === -1) state.selectedCards.push(cardId);
@@ -686,85 +690,7 @@ function renderHand() {
       updatePlayButton();
     };
 
-    // HTML5 drag
-    el.addEventListener('dragstart', e => {
-      dragSrcIndex = idx;
-      el.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', idx.toString());
-    });
-    el.addEventListener('dragend', () => { el.classList.remove('dragging'); clearDragHighlights(); });
-    el.addEventListener('dragover', e => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      clearDragHighlights();
-      const tgt = parseInt(el.dataset.idx);
-      if (tgt !== dragSrcIndex) {
-        el.classList.add(tgt > dragSrcIndex ? 'drag-over-left' : 'drag-over-right');
-      }
-    });
-    el.addEventListener('dragleave', () => { el.classList.remove('drag-over-left', 'drag-over-right'); });
-    el.addEventListener('drop', e => {
-      e.preventDefault();
-      const from = parseInt(e.dataTransfer.getData('text/plain'));
-      const to = parseInt(el.dataset.idx);
-      if (from !== to) {
-        const card = state.handOrder.splice(from, 1)[0];
-        state.handOrder.splice(to, 0, card);
-        renderHand();
-      }
-    });
-
-    // Touch drag (mobile)
-    let touchClone = null, touchStartX = 0, touchStartY = 0, touchMoved = false;
-    el.addEventListener('touchstart', e => {
-      dragSrcIndex = idx;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      touchMoved = false;
-    }, { passive: true });
-    el.addEventListener('touchmove', e => {
-      const dx = e.touches[0].clientX - touchStartX;
-      const dy = e.touches[0].clientY - touchStartY;
-      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) touchMoved = true;
-      if (!touchMoved) return;
-      e.preventDefault();
-      if (!touchClone) {
-        touchClone = el.cloneNode(true);
-        touchClone.style.cssText = 'position:fixed;z-index:999;pointer-events:none;opacity:0.7;';
-        document.body.appendChild(touchClone);
-        el.classList.add('dragging');
-      }
-      touchClone.style.left = (e.touches[0].clientX - 26) + 'px';
-      touchClone.style.top = (e.touches[0].clientY - 37) + 'px';
-    }, { passive: false });
-    el.addEventListener('touchend', e => {
-      if (touchClone) {
-        touchClone.remove();
-        touchClone = null;
-        el.classList.remove('dragging');
-        const touch = e.changedTouches[0];
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        const cardEl = target ? target.closest('.card') : null;
-        if (cardEl && cardEl.dataset.idx !== undefined) {
-          const to = parseInt(cardEl.dataset.idx);
-          if (dragSrcIndex !== to) {
-            const card = state.handOrder.splice(dragSrcIndex, 1)[0];
-            state.handOrder.splice(to, 0, card);
-            renderHand();
-          }
-        }
-      }
-      clearDragHighlights();
-    });
-
     container.appendChild(el);
-  });
-}
-
-function clearDragHighlights() {
-  document.querySelectorAll('.drag-over-left,.drag-over-right').forEach(e => {
-    e.classList.remove('drag-over-left', 'drag-over-right');
   });
 }
 
@@ -948,7 +874,6 @@ socket.on('rejoin_success', ({ roomCode, state: gameState, players }) => {
   state.timerSeconds = gameState.timerSeconds || 30;
   state.isObserving = gameState.isObserving || false;
   state.selectedCards = [];
-  state.handOrder = [];
   sessionStorage.setItem('za_room_code', roomCode);
   sessionStorage.setItem('za_player_id', state.myId);
   showScreen('game-screen');
@@ -1030,7 +955,6 @@ socket.on('game_started', ({ yourHand, currentPlayerId, turnOrder, players, isFi
   state.tableComboName = '';
   state.isObserving = false;
   state.isObserverMode = false;
-  state.handOrder = [];
   state.isFirstTurn = isFirstTurn || false;
   state.firstTurnPlayerId = firstTurnPlayerId || null;
   $('game-log').innerHTML = '';
@@ -1051,12 +975,6 @@ socket.on('state_update', (data) => {
   state.timerSeconds = data.timerSeconds || 0;
   state.isObserving = data.isObserving || false;
   state.selectedCards = state.selectedCards.filter(c => state.yourHand.includes(c));
-  // Sync handOrder
-  if (state.handOrder.length > 0) {
-    state.handOrder = state.handOrder.filter(c => state.yourHand.includes(c));
-    const newCards = state.yourHand.filter(c => !state.handOrder.includes(c));
-    state.handOrder.push(...newCards);
-  }
   // FIX 5: if player finished, show as observer
   if (state.isObserving) {
     $('action-bar').style.display = 'none';
@@ -1101,7 +1019,6 @@ socket.on('back_to_lobby', ({ players }) => {
   state.tableComboName = '';
   state.yourHand = [];
   state.selectedCards = [];
-  state.handOrder = [];
   state.isObserving = false;
   state.isObserverMode = false;
   document.querySelectorAll('.observer-banner,.autopass-banner').forEach(e => e.remove());
