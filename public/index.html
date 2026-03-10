@@ -22,18 +22,21 @@ body {
 /* === SCREENS === */
 .screen { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
 .screen.active { display: flex; }
+.hidden { display: none !important; }
 
 /* === HOME SCREEN === */
 #home-screen {
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 60px;
   background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
-  gap: 20px;
+  gap: 16px;
+  overflow-y: auto;
 }
 .logo { font-size: 96px; font-weight: 900; color: #f0c040; text-shadow: 0 4px 20px rgba(240,192,64,0.4); letter-spacing: 12px; }
 .logo-sub { font-size: 14px; color: #8ab89a; margin-top: -10px; letter-spacing: 4px; text-transform: uppercase; }
-.home-form { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 30px; width: 300px; }
+.home-form { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; width: 300px; }
 input {
   width: 100%; padding: 12px 16px; border-radius: 8px; border: 2px solid #2a6a3a;
   background: #0d2216; color: #eee; font-size: 16px; font-family: 'Montserrat', sans-serif;
@@ -55,6 +58,24 @@ input::placeholder { color: #5a8a6a; }
 .btn-small { padding: 8px 16px; font-size: 14px; }
 .error-msg { color: #ff6b6b; font-size: 13px; min-height: 20px; text-align: center; }
 
+/* FIX 2: Rooms list */
+.rooms-section { width: 300px; margin-top: 16px; padding-bottom: 40px; }
+.rooms-title { font-size: 13px; color: #8ab89a; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; text-align: center; }
+.rooms-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+.room-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px;
+}
+.room-info { display: flex; flex-direction: column; gap: 2px; }
+.room-code-small { font-size: 14px; font-weight: 700; color: #f0c040; }
+.room-host { font-size: 11px; color: #8ab89a; }
+.room-status-text { font-size: 11px; }
+.room-status-text.waiting { color: #f0c040; }
+.room-status-text.playing { color: #4caf50; }
+.room-status-text.full { color: #e74c3c; }
+.room-item .btn { width: auto; min-width: 80px; font-size: 12px; padding: 6px 12px; }
+.no-rooms { text-align: center; color: #5a8a6a; font-size: 13px; padding: 12px; }
+
 /* === LOBBY SCREEN === */
 #lobby-screen {
   flex-direction: column;
@@ -64,13 +85,13 @@ input::placeholder { color: #5a8a6a; }
   gap: 16px;
 }
 .room-code { font-size: 48px; font-weight: 900; color: #f0c040; letter-spacing: 8px; }
-.copy-link-btn {
+.share-btn {
   background: none; border: 1px solid #f0c040; color: #f0c040; padding: 8px 20px;
   border-radius: 6px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 13px;
   transition: all 0.2s;
 }
-.copy-link-btn:hover { background: rgba(240,192,64,0.1); }
-.copy-link-btn.copied { border-color: #4caf50; color: #4caf50; }
+.share-btn:hover { background: rgba(240,192,64,0.1); }
+.share-btn.copied { border-color: #4caf50; color: #4caf50; }
 .player-list {
   list-style: none; width: 320px; margin: 16px 0;
   background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px;
@@ -95,10 +116,24 @@ input::placeholder { color: #5a8a6a; }
   overflow: hidden;
 }
 
+/* FIX 6: Timer bar */
+.timer-bar {
+  width: 100%; height: 28px; background: rgba(0,0,0,0.3);
+  position: relative; z-index: 5; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.timer-fill {
+  position: absolute; left: 0; top: 0; height: 100%;
+  background: #4caf50; transition: width 1s linear;
+}
+.timer-text {
+  position: relative; z-index: 1; font-size: 13px; font-weight: 700; color: white;
+}
+
 /* Other players */
 .opponents-row {
   display: flex; justify-content: center; gap: 16px; padding: 10px 16px;
-  flex-wrap: wrap; z-index: 2;
+  flex-wrap: wrap; z-index: 2; flex-shrink: 0;
 }
 .opponent {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -114,21 +149,28 @@ input::placeholder { color: #5a8a6a; }
 }
 .card-back:first-child { margin-left: 0; }
 .opponent-name { font-size: 11px; color: #ccc; white-space: nowrap; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
-.opponent-count { font-size: 10px; color: #f0c040; font-weight: 700; }
 
 /* Table center */
 .table-center {
   flex: 1; display: flex; flex-direction: column; align-items: center;
   justify-content: center; z-index: 1; position: relative;
 }
+
+/* FIX 8: Turn status in center */
+.turn-status {
+  font-size: 26px; font-weight: 900; margin-bottom: 12px;
+  transition: opacity 0.4s ease-in;
+  min-height: 36px; text-align: center;
+}
+.turn-status.your-turn { color: #f0c040; text-shadow: 0 0 20px rgba(240,192,64,0.6); }
+.turn-status.other-turn { color: #8ab89a; }
+
 .table-cards { display: flex; gap: 6px; align-items: center; min-height: 100px; flex-wrap: wrap; justify-content: center; }
 .combo-label {
   font-size: 20px; font-weight: 900; color: #f0c040; margin-top: 10px;
   text-shadow: 0 2px 10px rgba(240,192,64,0.5); text-align: center;
 }
-.combo-flash {
-  animation: comboFlash 0.6s ease-out;
-}
+.combo-flash { animation: comboFlash 0.6s ease-out; }
 @keyframes comboFlash {
   0% { transform: scale(0.5); opacity: 0; }
   50% { transform: scale(1.3); }
@@ -144,28 +186,69 @@ input::placeholder { color: #5a8a6a; }
 }
 .new-trick-label { font-size: 14px; color: #8ab89a; }
 
+/* FIX 5: Observer banner */
+.observer-banner {
+  text-align: center; padding: 10px 20px; background: rgba(240,192,64,0.15);
+  color: #f0c040; font-size: 14px; font-weight: 600; z-index: 10;
+  border-top: 1px solid rgba(240,192,64,0.2);
+}
+
 /* Player hand */
 .hand-area {
-  padding: 8px 16px 4px; display: flex; flex-direction: column; align-items: center;
+  padding: 8px 16px 0; display: flex; flex-direction: column; align-items: center;
   z-index: 3; background: linear-gradient(transparent, rgba(0,0,0,0.3));
+  padding-bottom: 80px; /* FIX 1: Space for fixed buttons */
 }
 .hand-cards {
   display: flex; justify-content: center; gap: 2px; flex-wrap: nowrap;
   overflow-x: auto; max-width: 100vw; padding: 8px 4px 4px;
   -webkit-overflow-scrolling: touch;
 }
+
+/* FIX 1: Fixed bottom action bar */
 .action-bar {
-  display: flex; gap: 10px; padding: 6px 0 10px; justify-content: center;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; gap: 10px; padding: 10px 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  justify-content: center; z-index: 50;
+  background: rgba(15, 46, 26, 0.95);
+  border-top: 1px solid rgba(255,255,255,0.05);
 }
-.action-bar .btn { width: auto; min-width: 120px; font-size: 15px; padding: 10px 20px; }
+.action-bar .btn {
+  width: auto; min-width: 110px;
+  min-height: 56px; /* FIX 1 */
+  font-size: 18px; /* FIX 1 */
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: center;
+}
 .btn-pass { background: #555; color: #eee; }
 .btn-pass:hover { background: #666; }
+
+/* FIX 12: Auto-pass button */
+.btn-autopass { background: #444; color: #aaa; font-size: 13px !important; min-width: 90px !important; min-height: 56px; }
+.btn-autopass.active { background: #e67e22; color: #fff; }
+
+/* FIX 12: Auto-pass banner */
+.autopass-banner {
+  position: fixed; top: 32px; left: 50%; transform: translateX(-50%);
+  background: rgba(230,126,34,0.9); color: #fff; padding: 6px 16px;
+  border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 60;
+}
+
 .turn-indicator {
   font-size: 13px; padding: 4px 12px; border-radius: 20px; margin-bottom: 4px;
   background: rgba(240,192,64,0.15); color: #f0c040; font-weight: 600;
+  display: none; /* FIX 8: replaced by turn-status in center */
 }
-.turn-indicator.your-turn { background: rgba(240,192,64,0.25); animation: pulse 1.5s infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* FIX 17: Share button in game */
+.share-game-btn {
+  position: absolute; top: 6px; right: 10px; background: none;
+  border: 1px solid rgba(240,192,64,0.4); color: #f0c040; padding: 4px 12px;
+  border-radius: 6px; cursor: pointer; font-family: 'Montserrat', sans-serif;
+  font-size: 11px; z-index: 10; transition: all 0.2s;
+}
+.share-game-btn:hover { background: rgba(240,192,64,0.1); }
 
 /* Cards */
 .card {
@@ -187,6 +270,11 @@ input::placeholder { color: #5a8a6a; }
 .table-card { cursor: default; }
 .table-card:hover { transform: none; }
 
+/* FIX 3: Drag & drop styles */
+.card.dragging { opacity: 0.4; }
+.card.drag-over-left { border-left: 3px solid #f0c040; }
+.card.drag-over-right { border-right: 3px solid #f0c040; }
+
 /* Shake animation for invalid move */
 .shake { animation: shake 0.4s ease-in-out; }
 @keyframes shake {
@@ -207,14 +295,30 @@ input::placeholder { color: #5a8a6a; }
   100% { opacity: 0; }
 }
 
+/* Toast notification */
+.toast {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+  background: rgba(76,175,80,0.9); color: white; padding: 8px 20px;
+  border-radius: 20px; font-size: 13px; font-weight: 600; z-index: 200;
+  animation: tooltipFade 2.5s forwards; pointer-events: none;
+}
+
 /* Game log */
 .game-log {
-  position: absolute; bottom: 160px; right: 10px; width: 220px; max-height: 180px;
+  position: absolute; bottom: 100px; right: 10px; width: 220px;
   overflow-y: auto; z-index: 10; display: flex; flex-direction: column; gap: 2px;
   font-size: 11px; pointer-events: none;
 }
 .log-entry { padding: 3px 8px; background: rgba(0,0,0,0.4); border-radius: 4px; color: #aaa; }
 .log-entry.highlight { color: #f0c040; }
+
+/* FIX 11: Reconnect overlay */
+.reconnect-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7); display: flex; align-items: center;
+  justify-content: center; z-index: 1000; color: #f0c040;
+  font-size: 20px; font-weight: 700; flex-direction: column; gap: 10px;
+}
 
 /* === END SCREEN === */
 #end-screen {
@@ -234,27 +338,37 @@ input::placeholder { color: #5a8a6a; }
 
 /* === RESPONSIVE === */
 @media (max-width: 600px) {
+  #home-screen { padding-top: 40px; }
   .logo { font-size: 64px; }
   .home-form { width: 260px; }
+  .rooms-section { width: 260px; }
   .room-code { font-size: 36px; }
   .player-list { width: 280px; }
   .card { width: 42px; height: 62px; }
   .card .rank { font-size: 14px; }
   .card .suit { font-size: 12px; }
-  .game-log { display: none; }
+  .game-log { width: 160px; font-size: 10px; }
   .opponent { min-width: 56px; padding: 6px 8px; }
   .combo-label { font-size: 16px; }
-  .action-bar .btn { min-width: 100px; font-size: 14px; padding: 8px 14px; }
+  .turn-status { font-size: 20px; }
+  .action-bar .btn { min-width: 90px; font-size: 16px !important; padding: 10px 14px; }
 }
 
 @media (max-width: 380px) {
   .card { width: 36px; height: 54px; }
   .card .rank { font-size: 12px; }
   .card .suit { font-size: 10px; }
+  .action-bar .btn { min-width: 80px; font-size: 15px !important; }
 }
 </style>
 </head>
 <body>
+
+<!-- FIX 11: Reconnect overlay -->
+<div class="reconnect-overlay hidden" id="reconnect-overlay">
+  <div>Переподключение...</div>
+  <div style="font-size:13px;color:#8ab89a">Восстанавливаем соединение</div>
+</div>
 
 <!-- === HOME SCREEN === -->
 <div id="home-screen" class="screen active">
@@ -270,13 +384,21 @@ input::placeholder { color: #5a8a6a; }
       <button class="btn btn-primary" id="join-room-btn">Войти</button>
     </div>
   </div>
+  <!-- FIX 2: Active rooms list -->
+  <div class="rooms-section" id="rooms-section">
+    <div class="rooms-title">Активные комнаты</div>
+    <div class="rooms-list" id="rooms-list">
+      <div class="no-rooms">Нет активных комнат</div>
+    </div>
+  </div>
 </div>
 
 <!-- === LOBBY SCREEN === -->
 <div id="lobby-screen" class="screen">
   <button class="lobby-back" id="lobby-back-btn">&larr; Назад</button>
   <div class="room-code" id="lobby-room-code">ZA-XXXX</div>
-  <button class="copy-link-btn" id="copy-link-btn">Скопировать ссылку</button>
+  <!-- FIX 17: Share button -->
+  <button class="share-btn" id="lobby-share-btn">Поделиться</button>
   <ul class="player-list" id="player-list"></ul>
   <div class="lobby-status" id="lobby-status">Ожидание игроков...</div>
   <button class="btn btn-primary" id="start-game-btn" style="width:300px" disabled>Начать игру</button>
@@ -284,19 +406,41 @@ input::placeholder { color: #5a8a6a; }
 
 <!-- === GAME SCREEN === -->
 <div id="game-screen" class="screen">
+  <!-- FIX 6: Timer bar -->
+  <div class="timer-bar" id="timer-bar">
+    <div class="timer-fill" id="timer-fill"></div>
+    <span class="timer-text" id="timer-text">30</span>
+  </div>
+
   <div class="opponents-row" id="opponents-row"></div>
+
   <div class="table-center">
+    <!-- FIX 8: Turn status -->
+    <div class="turn-status" id="turn-status"></div>
     <div class="table-cards" id="table-cards"></div>
     <div class="combo-label" id="combo-label"></div>
   </div>
-  <div class="hand-area">
-    <div class="turn-indicator" id="turn-indicator"></div>
+
+  <!-- FIX 5: Observer banner -->
+  <div class="observer-banner hidden" id="observer-banner"></div>
+
+  <div class="hand-area" id="hand-area">
     <div class="hand-cards" id="hand-cards"></div>
-    <div class="action-bar">
-      <button class="btn btn-primary" id="play-btn" disabled>Сыграть</button>
-      <button class="btn btn-pass" id="pass-btn">Пас</button>
-    </div>
   </div>
+
+  <!-- FIX 1: Fixed bottom action bar -->
+  <div class="action-bar" id="action-bar">
+    <button class="btn btn-primary" id="play-btn" disabled>Сыграть</button>
+    <button class="btn btn-pass" id="pass-btn">Пас</button>
+    <button class="btn btn-autopass" id="autopass-btn">Автопас</button>
+  </div>
+
+  <!-- FIX 17: Share button in game -->
+  <button class="share-game-btn" id="share-game-btn">Поделиться</button>
+
+  <!-- FIX 12: Auto-pass banner -->
+  <div class="autopass-banner hidden" id="autopass-banner">Автопас включён</div>
+
   <div class="game-log" id="game-log"></div>
 </div>
 
@@ -310,7 +454,7 @@ input::placeholder { color: #5a8a6a; }
 <script src="/socket.io/socket.io.js"></script>
 <script>
 // === SOCKET & STATE ===
-const socket = io();
+const socket = io({ reconnection: true, reconnectionDelay: 1000, reconnectionAttempts: Infinity });
 
 const state = {
   myId: null,
@@ -318,18 +462,22 @@ const state = {
   isHost: false,
   players: [],
   yourHand: [],
+  handOrder: [], // FIX 3: custom hand order for drag & drop
   selectedCards: [],
   tableCombo: null,
   tableComboName: '',
   currentPlayerId: null,
   turnOrder: [],
   standings: [],
+  isObserver: false,    // FIX 2/5: observer mode
+  isFinished: false,    // FIX 5: finished player observing
+  autoPass: false,      // FIX 12: auto-pass toggle
+  justDragged: false,   // FIX 3: prevent click after drag
 };
 
 // === CONSTANTS ===
 const RANK_VALUE = { '4':1,'5':2,'6':3,'7':4,'8':5,'9':6,'10':7,'J':8,'Q':9,'K':10,'A':11,'2':12,'3':13,'JOK':14 };
 const SUIT_SYMBOLS = { s: '\u2660', h: '\u2665', d: '\u2666', c: '\u2663' };
-const COMBO_TYPES = { SINGLE:'single', PAIR:'pair', STRAIGHT:'straight', ZA:'za', PO:'po', VANGOG:'vangog' };
 
 function getCardRank(id) {
   if (id.startsWith('JOK')) return 'JOK';
@@ -352,6 +500,25 @@ function showScreen(id) {
 // === UI ELEMENTS ===
 const $ = id => document.getElementById(id);
 
+// === FIX 16: Load saved name ===
+window.addEventListener('load', () => {
+  const savedName = localStorage.getItem('za_player_name');
+  if (savedName) $('nickname-input').value = savedName;
+
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = params.get('room');
+  if (roomParam) {
+    $('room-code-input').value = roomParam.toUpperCase();
+    $('join-section').classList.add('show');
+  }
+});
+
+// FIX 16: Save name on input
+$('nickname-input').addEventListener('input', () => {
+  const val = $('nickname-input').value.trim();
+  if (val) localStorage.setItem('za_player_name', val);
+});
+
 // === HOME SCREEN ===
 $('show-join-btn').onclick = () => {
   $('join-section').classList.toggle('show');
@@ -361,6 +528,7 @@ $('create-room-btn').onclick = () => {
   const nick = $('nickname-input').value.trim();
   if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
   $('home-error').textContent = '';
+  localStorage.setItem('za_player_name', nick);
   socket.emit('create_room', { nickname: nick, maxPlayers: 8 });
 };
 
@@ -370,6 +538,7 @@ $('join-room-btn').onclick = () => {
   if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
   if (!code) { $('home-error').textContent = 'Введите код комнаты'; return; }
   $('home-error').textContent = '';
+  localStorage.setItem('za_player_name', nick);
   socket.emit('join_room', { roomCode: code, nickname: nick });
 };
 
@@ -380,18 +549,113 @@ $('room-code-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') $('join-room-btn').click();
 });
 
-// === LOBBY SCREEN ===
-$('copy-link-btn').onclick = () => {
-  const url = window.location.origin + '/?room=' + state.roomCode;
-  navigator.clipboard.writeText(url).then(() => {
-    $('copy-link-btn').textContent = 'Скопировано!';
-    $('copy-link-btn').classList.add('copied');
-    setTimeout(() => {
-      $('copy-link-btn').textContent = 'Скопировать ссылку';
-      $('copy-link-btn').classList.remove('copied');
-    }, 2000);
+// === FIX 2: Room list rendering ===
+function renderRoomList(rooms) {
+  const container = $('rooms-list');
+  container.innerHTML = '';
+
+  if (!rooms || rooms.length === 0) {
+    container.innerHTML = '<div class="no-rooms">Нет активных комнат</div>';
+    return;
+  }
+
+  rooms.forEach(room => {
+    const item = document.createElement('div');
+    item.className = 'room-item';
+
+    let statusText, statusClass, btnText, btnAction;
+    if (room.status === 'lobby' && room.playerCount < room.maxPlayers) {
+      statusText = '\uD83D\uDFE1 Ожидание';
+      statusClass = 'waiting';
+      btnText = 'Войти';
+      btnAction = () => {
+        const nick = $('nickname-input').value.trim();
+        if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
+        localStorage.setItem('za_player_name', nick);
+        socket.emit('join_room', { roomCode: room.code, nickname: nick });
+      };
+    } else if (room.status === 'playing') {
+      statusText = '\uD83D\uDFE2 Идёт игра';
+      statusClass = 'playing';
+      btnText = 'Наблюдать';
+      btnAction = () => {
+        const nick = $('nickname-input').value.trim() || 'Observer';
+        socket.emit('join_as_observer', { roomCode: room.code, nickname: nick });
+      };
+    } else {
+      statusText = '\uD83D\uDD34 Полная';
+      statusClass = 'full';
+      btnText = 'В очередь';
+      btnAction = () => {
+        const nick = $('nickname-input').value.trim();
+        if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
+        localStorage.setItem('za_player_name', nick);
+        socket.emit('join_queue', { roomCode: room.code, nickname: nick });
+      };
+    }
+
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'room-info';
+    infoDiv.innerHTML = `
+      <div class="room-code-small">${room.code}</div>
+      <div class="room-host">${room.hostNickname} (${room.playerCount}/${room.maxPlayers})</div>
+      <div class="room-status-text ${statusClass}">${statusText}</div>
+    `;
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary btn-small';
+    btn.textContent = btnText;
+    btn.onclick = btnAction;
+
+    item.appendChild(infoDiv);
+    item.appendChild(btn);
+    container.appendChild(item);
   });
-};
+}
+
+// === LOBBY SCREEN ===
+
+// FIX 17: Share function
+function shareRoom(roomCode) {
+  const url = 'https://za-game-production.up.railway.app/?room=' + roomCode;
+
+  if (navigator.share) {
+    navigator.share({ title: 'ZA — Карточная игра', text: 'Присоединяйся к игре!', url })
+      .catch(() => copyToClipboard(url));
+  } else {
+    copyToClipboard(url);
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Ссылка скопирована!');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showToast('Ссылка скопирована!');
+  });
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+$('lobby-share-btn').onclick = () => shareRoom(state.roomCode);
+$('share-game-btn').onclick = () => shareRoom(state.roomCode);
 
 $('start-game-btn').onclick = () => {
   socket.emit('start_game');
@@ -409,6 +673,17 @@ $('play-btn').onclick = () => {
 
 $('pass-btn').onclick = () => {
   socket.emit('pass_turn');
+};
+
+// FIX 12: Auto-pass toggle
+$('autopass-btn').onclick = () => {
+  state.autoPass = !state.autoPass;
+  $('autopass-btn').classList.toggle('active', state.autoPass);
+  if (state.autoPass) {
+    $('autopass-banner').classList.remove('hidden');
+  } else {
+    $('autopass-banner').classList.add('hidden');
+  }
 };
 
 // === END SCREEN ===
@@ -437,6 +712,16 @@ function createCardEl(cardId, opts = {}) {
   return el;
 }
 
+// === FIX 3: Hand order management ===
+function updateHandOrder(newHand) {
+  // Remove cards no longer in hand
+  state.handOrder = state.handOrder.filter(c => newHand.includes(c));
+  // Add new cards (sorted) at end
+  const newCards = newHand.filter(c => !state.handOrder.includes(c));
+  newCards.sort((a, b) => getCardValue(a) - getCardValue(b));
+  state.handOrder.push(...newCards);
+}
+
 // === RENDER FUNCTIONS ===
 function renderLobby() {
   $('lobby-room-code').textContent = state.roomCode;
@@ -463,6 +748,7 @@ function renderLobby() {
   $('start-game-btn').textContent = state.isHost ? 'Начать игру' : 'Ожидание хоста...';
 }
 
+// FIX 4: Remove card count, show only name and card backs
 function renderOpponents() {
   const row = $('opponents-row');
   row.innerHTML = '';
@@ -486,13 +772,9 @@ function renderOpponents() {
     name.className = 'opponent-name';
     name.textContent = p.nickname;
 
-    const countEl = document.createElement('div');
-    countEl.className = 'opponent-count';
-    countEl.textContent = p.finished ? 'Вышел' : `${p.cardCount} карт`;
-
     div.appendChild(cardsDiv);
     div.appendChild(name);
-    div.appendChild(countEl);
+    // FIX 4: No card count number
     row.appendChild(div);
   });
 }
@@ -521,17 +803,19 @@ function renderTableCards() {
   label.classList.add('combo-flash');
 }
 
+// FIX 3: Render hand with drag & drop
 function renderHand() {
   const container = $('hand-cards');
   container.innerHTML = '';
 
-  const sorted = [...state.yourHand].sort((a, b) => getCardValue(a) - getCardValue(b));
-
-  sorted.forEach(cardId => {
+  // Use handOrder for rendering (preserves custom order)
+  state.handOrder.forEach((cardId, index) => {
     const el = createCardEl(cardId);
     if (state.selectedCards.includes(cardId)) el.classList.add('selected');
 
+    // Click to select
     el.onclick = () => {
+      if (state.justDragged) { state.justDragged = false; return; }
       const idx = state.selectedCards.indexOf(cardId);
       if (idx === -1) {
         state.selectedCards.push(cardId);
@@ -542,6 +826,189 @@ function renderHand() {
       updatePlayButton();
     };
 
+    // FIX 3: HTML5 Drag & Drop
+    el.draggable = true;
+    el.dataset.cardId = cardId;
+    el.dataset.index = String(index);
+
+    el.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', cardId);
+      e.dataTransfer.effectAllowed = 'move';
+      el.classList.add('dragging');
+      state.draggedCardId = cardId;
+    });
+
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      state.draggedCardId = null;
+      container.querySelectorAll('.card').forEach(c => {
+        c.classList.remove('drag-over-left', 'drag-over-right');
+      });
+    });
+
+    el.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const rect = el.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      container.querySelectorAll('.card').forEach(c => {
+        c.classList.remove('drag-over-left', 'drag-over-right');
+      });
+      if (e.clientX < midX) {
+        el.classList.add('drag-over-left');
+      } else {
+        el.classList.add('drag-over-right');
+      }
+    });
+
+    el.addEventListener('dragleave', () => {
+      el.classList.remove('drag-over-left', 'drag-over-right');
+    });
+
+    el.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const draggedId = e.dataTransfer.getData('text/plain');
+      if (draggedId && draggedId !== cardId) {
+        const fromIdx = state.handOrder.indexOf(draggedId);
+        const toIdx = state.handOrder.indexOf(cardId);
+        if (fromIdx !== -1 && toIdx !== -1) {
+          state.handOrder.splice(fromIdx, 1);
+          // Determine insert position based on mouse position
+          const rect = el.getBoundingClientRect();
+          const midX = rect.left + rect.width / 2;
+          const newToIdx = state.handOrder.indexOf(cardId);
+          if (e.clientX < midX) {
+            state.handOrder.splice(newToIdx, 0, draggedId);
+          } else {
+            state.handOrder.splice(newToIdx + 1, 0, draggedId);
+          }
+          renderHand();
+        }
+      }
+      container.querySelectorAll('.card').forEach(c => {
+        c.classList.remove('drag-over-left', 'drag-over-right');
+      });
+    });
+
+    // FIX 3: Touch events for mobile drag & drop
+    let touchTimer = null;
+    let touchState = null;
+
+    el.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      touchState = {
+        cardId,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        isDragging: false,
+        clone: null,
+      };
+      touchTimer = setTimeout(() => {
+        if (touchState) {
+          touchState.isDragging = true;
+          el.classList.add('dragging');
+          // Create visual clone
+          const clone = el.cloneNode(true);
+          clone.style.position = 'fixed';
+          clone.style.zIndex = '1000';
+          clone.style.opacity = '0.8';
+          clone.style.pointerEvents = 'none';
+          clone.style.width = el.offsetWidth + 'px';
+          clone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
+          clone.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
+          clone.style.transform = 'scale(1.1)';
+          document.body.appendChild(clone);
+          touchState.clone = clone;
+        }
+      }, 250);
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+      if (!touchState) return;
+      const touch = e.touches[0];
+      const dx = Math.abs(touch.clientX - touchState.startX);
+      const dy = Math.abs(touch.clientY - touchState.startY);
+
+      if (!touchState.isDragging) {
+        if (dx > 10 || dy > 10) {
+          clearTimeout(touchTimer);
+          touchState = null;
+          return;
+        }
+        return;
+      }
+
+      e.preventDefault();
+      if (touchState.clone) {
+        touchState.clone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
+        touchState.clone.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
+      }
+
+      // Highlight drop target
+      container.querySelectorAll('.card').forEach(c => {
+        c.classList.remove('drag-over-left', 'drag-over-right');
+      });
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (target) {
+        const targetCard = target.closest('.card');
+        if (targetCard && targetCard !== el) {
+          const rect = targetCard.getBoundingClientRect();
+          if (touch.clientX < rect.left + rect.width / 2) {
+            targetCard.classList.add('drag-over-left');
+          } else {
+            targetCard.classList.add('drag-over-right');
+          }
+        }
+      }
+    }, { passive: false });
+
+    el.addEventListener('touchend', (e) => {
+      clearTimeout(touchTimer);
+      if (!touchState) return;
+
+      if (touchState.isDragging) {
+        const touch = e.changedTouches[0];
+        if (touchState.clone) touchState.clone.remove();
+        el.classList.remove('dragging');
+
+        // Find drop target
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (target) {
+          const targetCard = target.closest('.card');
+          if (targetCard && targetCard.dataset.cardId && targetCard.dataset.cardId !== touchState.cardId) {
+            const fromIdx = state.handOrder.indexOf(touchState.cardId);
+            const targetId = targetCard.dataset.cardId;
+            if (fromIdx !== -1) {
+              state.handOrder.splice(fromIdx, 1);
+              const rect = targetCard.getBoundingClientRect();
+              const newToIdx = state.handOrder.indexOf(targetId);
+              if (touch.clientX < rect.left + rect.width / 2) {
+                state.handOrder.splice(newToIdx, 0, touchState.cardId);
+              } else {
+                state.handOrder.splice(newToIdx + 1, 0, touchState.cardId);
+              }
+            }
+          }
+        }
+
+        container.querySelectorAll('.card').forEach(c => {
+          c.classList.remove('drag-over-left', 'drag-over-right');
+        });
+
+        state.justDragged = true;
+        setTimeout(() => { state.justDragged = false; }, 100);
+        renderHand();
+      }
+      touchState = null;
+    });
+
+    el.addEventListener('touchcancel', () => {
+      clearTimeout(touchTimer);
+      if (touchState && touchState.clone) touchState.clone.remove();
+      el.classList.remove('dragging');
+      touchState = null;
+    });
+
     container.appendChild(el);
   });
 }
@@ -549,30 +1016,54 @@ function renderHand() {
 function updatePlayButton() {
   const isMyTurn = state.currentPlayerId === state.myId;
   const hasSelection = state.selectedCards.length > 0;
-  $('play-btn').disabled = !isMyTurn || !hasSelection;
-  $('pass-btn').disabled = !isMyTurn || !state.tableCombo;
+  $('play-btn').disabled = !isMyTurn || !hasSelection || state.isObserver || state.isFinished;
+  $('pass-btn').disabled = !isMyTurn || !state.tableCombo || state.isObserver || state.isFinished;
 }
 
-function renderTurnIndicator() {
-  const el = $('turn-indicator');
-  if (state.currentPlayerId === state.myId) {
+// FIX 8: Turn status in center of table
+function renderTurnStatus() {
+  const el = $('turn-status');
+  if (state.currentPlayerId === state.myId && !state.isObserver && !state.isFinished) {
     el.textContent = 'Ваш ход!';
-    el.className = 'turn-indicator your-turn';
+    el.className = 'turn-status your-turn';
   } else {
     const p = state.players.find(pl => pl.id === state.currentPlayerId);
-    el.textContent = p ? `Ходит: ${p.nickname}` : '';
-    el.className = 'turn-indicator';
+    el.textContent = p ? `Ход: ${p.nickname}` : '';
+    el.className = 'turn-status other-turn';
   }
+  // Fade-in animation
+  el.style.opacity = '0';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      el.style.opacity = '1';
+    });
+  });
 }
 
 function renderGame() {
   renderOpponents();
   renderTableCards();
-  renderHand();
-  renderTurnIndicator();
+  renderTurnStatus();
+
+  if (state.isObserver || state.isFinished) {
+    $('hand-area').style.display = 'none';
+    $('observer-banner').classList.remove('hidden');
+    $('observer-banner').textContent = state.isFinished
+      ? 'Вы закончили! Наблюдаете за игрой...'
+      : 'Режим наблюдателя';
+    // Hide action buttons for observers
+    $('action-bar').style.display = state.isFinished ? 'none' : 'none';
+  } else {
+    $('hand-area').style.display = '';
+    $('observer-banner').classList.add('hidden');
+    $('action-bar').style.display = '';
+    renderHand();
+  }
+
   updatePlayButton();
 }
 
+// FIX 7: Only last 2 log entries
 function addLog(text, highlight = false) {
   const log = $('game-log');
   const entry = document.createElement('div');
@@ -581,8 +1072,8 @@ function addLog(text, highlight = false) {
   log.appendChild(entry);
   log.scrollTop = log.scrollHeight;
 
-  // Keep max 50 entries
-  while (log.children.length > 50) log.removeChild(log.firstChild);
+  // FIX 7: Keep only last 2
+  while (log.children.length > 2) log.removeChild(log.firstChild);
 }
 
 function showInvalidTooltip(msg) {
@@ -623,22 +1114,72 @@ function renderStandings() {
   });
 }
 
+// === FIX 6: Timer display ===
+function updateTimer(secondsLeft) {
+  const fill = $('timer-fill');
+  const text = $('timer-text');
+  const pct = Math.max(0, (secondsLeft / 30) * 100);
+  fill.style.width = pct + '%';
+  text.textContent = secondsLeft;
+
+  if (secondsLeft <= 5) {
+    fill.style.background = '#e74c3c';
+  } else if (secondsLeft <= 15) {
+    fill.style.background = '#f0c040';
+  } else {
+    fill.style.background = '#4caf50';
+  }
+}
+
 // === SOCKET EVENTS ===
 
 socket.on('connect', () => {
   state.myId = socket.id;
+  $('reconnect-overlay').classList.add('hidden');
+
+  // FIX 11: Try to rejoin after reconnect
+  const savedRoom = sessionStorage.getItem('za_room_code');
+  const savedPlayer = sessionStorage.getItem('za_player_id');
+  if (savedRoom && savedPlayer) {
+    socket.emit('rejoin_room', { roomCode: savedRoom, playerId: savedPlayer });
+  }
 });
 
-socket.on('room_created', ({ roomCode }) => {
+socket.on('disconnect', () => {
+  // Only show reconnect if we were in a game
+  if (state.roomCode) {
+    $('reconnect-overlay').classList.remove('hidden');
+  }
+});
+
+// FIX 11: Page Visibility API
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    if (!socket.connected) {
+      socket.connect();
+    }
+  }
+});
+
+socket.on('room_created', ({ roomCode, playerId }) => {
   state.roomCode = roomCode;
   state.isHost = true;
+  state.isObserver = false;
+  state.isFinished = false;
+  // FIX 11: Save to sessionStorage
+  sessionStorage.setItem('za_room_code', roomCode);
+  sessionStorage.setItem('za_player_id', playerId || socket.id);
   showScreen('lobby-screen');
   renderLobby();
 });
 
-socket.on('room_joined', ({ roomCode }) => {
+socket.on('room_joined', ({ roomCode, playerId }) => {
   state.roomCode = roomCode;
   state.isHost = false;
+  state.isObserver = false;
+  state.isFinished = false;
+  sessionStorage.setItem('za_room_code', roomCode);
+  sessionStorage.setItem('za_player_id', playerId || socket.id);
   showScreen('lobby-screen');
   renderLobby();
 });
@@ -650,14 +1191,49 @@ socket.on('room_updated', ({ players }) => {
   renderLobby();
 });
 
+// FIX 2: Room list
+socket.on('room_list', ({ rooms }) => {
+  renderRoomList(rooms);
+});
+
+// FIX 2: Observer joined
+socket.on('observer_joined', ({ roomCode }) => {
+  state.roomCode = roomCode;
+  state.isObserver = true;
+  state.isFinished = false;
+  showScreen('game-screen');
+});
+
+// FIX 2: Observer update
+socket.on('observer_update', (data) => {
+  state.tableCombo = data.tableCombo;
+  state.tableComboName = data.tableComboName;
+  state.players = data.players;
+  state.currentPlayerId = data.currentPlayerId;
+  state.yourHand = [];
+  state.handOrder = [];
+  renderGame();
+});
+
+// FIX 2: Queued
+socket.on('queued', ({ roomCode, position }) => {
+  showToast(`В очереди: позиция ${position}`);
+});
+
 socket.on('game_started', ({ yourHand, currentPlayerId, turnOrder, players }) => {
   state.yourHand = yourHand;
+  state.handOrder = [...yourHand]; // FIX 3: Initialize hand order
   state.currentPlayerId = currentPlayerId;
   state.turnOrder = turnOrder;
   state.players = players;
   state.selectedCards = [];
   state.tableCombo = null;
   state.tableComboName = '';
+  state.isFinished = false;
+  state.isObserver = false;
+  state.autoPass = false;
+  $('autopass-btn').classList.remove('active');
+  $('autopass-banner').classList.add('hidden');
   $('game-log').innerHTML = '';
   showScreen('game-screen');
   addLog('Игра началась!', true);
@@ -666,13 +1242,29 @@ socket.on('game_started', ({ yourHand, currentPlayerId, turnOrder, players }) =>
 
 socket.on('state_update', (data) => {
   state.yourHand = data.yourHand;
+  updateHandOrder(data.yourHand); // FIX 3
   state.tableCombo = data.tableCombo;
   state.tableComboName = data.tableComboName;
   state.players = data.players;
   state.currentPlayerId = data.currentPlayerId;
-  // Remove selected cards that are no longer in hand
   state.selectedCards = state.selectedCards.filter(c => state.yourHand.includes(c));
   renderGame();
+
+  // FIX 12: Auto-pass
+  if (state.autoPass && state.currentPlayerId === state.myId && state.tableCombo && !state.isFinished) {
+    setTimeout(() => {
+      socket.emit('pass_turn');
+    }, 500);
+  }
+});
+
+// FIX 12: Handle your_turn for auto-pass
+socket.on('your_turn', () => {
+  if (state.autoPass && state.tableCombo && !state.isFinished) {
+    setTimeout(() => {
+      socket.emit('pass_turn');
+    }, 500);
+  }
 });
 
 socket.on('player_played', ({ playerId, nickname, comboName, comboCards, comboType }) => {
@@ -687,16 +1279,29 @@ socket.on('player_finished', ({ nickname, place }) => {
   addLog(`${nickname} вышел (${place} место)!`, true);
 });
 
+// FIX 5: Finished player becomes observer
+socket.on('you_are_observer', ({ message }) => {
+  state.isFinished = true;
+  renderGame();
+});
+
 socket.on('trick_won', ({ playerId, nickname }) => {
   addLog(`${nickname} забирает раунд!`, true);
   showTrickWon(nickname);
 });
 
+// FIX 6: Timer tick
+socket.on('timer_tick', ({ secondsLeft }) => {
+  updateTimer(secondsLeft);
+});
+
 socket.on('game_over', ({ standings }) => {
   state.standings = standings;
+  state.isFinished = false;
+  state.isObserver = false;
+  state.autoPass = false;
   showScreen('end-screen');
   renderStandings();
-  // Only host can restart
   $('play-again-btn').style.display = state.isHost ? 'block' : 'none';
 });
 
@@ -705,9 +1310,43 @@ socket.on('back_to_lobby', ({ players }) => {
   state.tableCombo = null;
   state.tableComboName = '';
   state.yourHand = [];
+  state.handOrder = [];
   state.selectedCards = [];
+  state.isFinished = false;
+  state.isObserver = false;
+  state.autoPass = false;
+  $('autopass-btn').classList.remove('active');
+  $('autopass-banner').classList.add('hidden');
   showScreen('lobby-screen');
   renderLobby();
+});
+
+// FIX 11: Rejoin success
+socket.on('rejoin_success', ({ roomCode, playerId, gameState, isFinished }) => {
+  state.roomCode = roomCode;
+  state.isFinished = isFinished || false;
+  state.isObserver = false;
+  sessionStorage.setItem('za_room_code', roomCode);
+  sessionStorage.setItem('za_player_id', playerId);
+
+  state.yourHand = gameState.yourHand;
+  state.handOrder = [...gameState.yourHand];
+  state.tableCombo = gameState.tableCombo;
+  state.tableComboName = gameState.tableComboName;
+  state.players = gameState.players;
+  state.currentPlayerId = gameState.currentPlayerId;
+  state.selectedCards = [];
+
+  const me = state.players.find(p => p.id === state.myId);
+  if (me) state.isHost = me.isHost;
+
+  showScreen('game-screen');
+  renderGame();
+});
+
+socket.on('rejoin_failed', () => {
+  sessionStorage.removeItem('za_room_code');
+  sessionStorage.removeItem('za_player_id');
 });
 
 socket.on('invalid_move', ({ reason }) => {
@@ -716,16 +1355,6 @@ socket.on('invalid_move', ({ reason }) => {
 
 socket.on('error', ({ message }) => {
   $('home-error').textContent = message;
-});
-
-// === URL PARAM AUTO-JOIN ===
-window.addEventListener('load', () => {
-  const params = new URLSearchParams(window.location.search);
-  const roomParam = params.get('room');
-  if (roomParam) {
-    $('room-code-input').value = roomParam.toUpperCase();
-    $('join-section').classList.add('show');
-  }
 });
 </script>
 </body>
