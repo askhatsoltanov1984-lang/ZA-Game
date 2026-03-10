@@ -7,36 +7,25 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-/* === RESET & BASE === */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
 body {
   font-family: 'Montserrat', sans-serif;
-  background: #0f2e1a;
-  color: #eee;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: #0f2e1a; color: #eee;
+  display: flex; justify-content: center; align-items: center;
 }
-
-/* === SCREENS === */
 .screen { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
 .screen.active { display: flex; }
-.hidden { display: none !important; }
 
-/* === HOME SCREEN === */
+/* HOME */
 #home-screen {
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 60px;
+  flex-direction: column; align-items: center; justify-content: center;
   background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
-  gap: 16px;
-  overflow-y: auto;
+  gap: 20px; overflow-y: auto;
 }
 .logo { font-size: 96px; font-weight: 900; color: #f0c040; text-shadow: 0 4px 20px rgba(240,192,64,0.4); letter-spacing: 12px; }
 .logo-sub { font-size: 14px; color: #8ab89a; margin-top: -10px; letter-spacing: 4px; text-transform: uppercase; }
-.home-form { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 20px; width: 300px; }
+.home-form { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 30px; width: 300px; }
 input {
   width: 100%; padding: 12px 16px; border-radius: 8px; border: 2px solid #2a6a3a;
   background: #0d2216; color: #eee; font-size: 16px; font-family: 'Montserrat', sans-serif;
@@ -58,40 +47,39 @@ input::placeholder { color: #5a8a6a; }
 .btn-small { padding: 8px 16px; font-size: 14px; }
 .error-msg { color: #ff6b6b; font-size: 13px; min-height: 20px; text-align: center; }
 
-/* FIX 2: Rooms list */
-.rooms-section { width: 300px; margin-top: 16px; padding-bottom: 40px; }
-.rooms-title { font-size: 13px; color: #8ab89a; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; text-align: center; }
-.rooms-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
-.room-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 14px; background: rgba(0,0,0,0.25); border-radius: 8px;
+/* ROOM LIST (FIX 2) */
+.room-list-section { width: 300px; margin-top: 16px; }
+.room-list-title { font-size: 14px; color: #8ab89a; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
+.room-list { list-style: none; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; }
+.room-list:empty::after { content: 'Нет активных комнат'; display: block; padding: 12px; color: #5a8a6a; text-align: center; font-size: 13px; }
+.room-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px;
 }
-.room-info { display: flex; flex-direction: column; gap: 2px; }
-.room-code-small { font-size: 14px; font-weight: 700; color: #f0c040; }
-.room-host { font-size: 11px; color: #8ab89a; }
-.room-status-text { font-size: 11px; }
-.room-status-text.waiting { color: #f0c040; }
-.room-status-text.playing { color: #4caf50; }
-.room-status-text.full { color: #e74c3c; }
-.room-item .btn { width: auto; min-width: 80px; font-size: 12px; padding: 6px 12px; }
-.no-rooms { text-align: center; color: #5a8a6a; font-size: 13px; padding: 12px; }
+.room-list-item:last-child { border-bottom: none; }
+.room-list-info { display: flex; align-items: center; gap: 8px; }
+.room-list-btn {
+  padding: 4px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 700;
+  font-family: 'Montserrat', sans-serif; cursor: pointer;
+}
+.room-list-btn.join { background: #f0c040; color: #111; }
+.room-list-btn.observe { background: #3a8a4a; color: #fff; }
+.room-list-btn.queue { background: #c0392b; color: #fff; }
 
-/* === LOBBY SCREEN === */
+/* LOBBY */
 #lobby-screen {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column; align-items: center; justify-content: center;
   background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
   gap: 16px;
 }
 .room-code { font-size: 48px; font-weight: 900; color: #f0c040; letter-spacing: 8px; }
-.share-btn {
+.copy-link-btn {
   background: none; border: 1px solid #f0c040; color: #f0c040; padding: 8px 20px;
   border-radius: 6px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 13px;
   transition: all 0.2s;
 }
-.share-btn:hover { background: rgba(240,192,64,0.1); }
-.share-btn.copied { border-color: #4caf50; color: #4caf50; }
+.copy-link-btn:hover { background: rgba(240,192,64,0.1); }
+.copy-link-btn.copied { border-color: #4caf50; color: #4caf50; }
 .player-list {
   list-style: none; width: 320px; margin: 16px 0;
   background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px;
@@ -107,33 +95,23 @@ input::placeholder { color: #5a8a6a; }
 }
 .lobby-status { color: #8ab89a; font-size: 14px; }
 .lobby-back { position: absolute; top: 20px; left: 20px; background: none; border: none; color: #8ab89a; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 14px; }
+/* FIX 17: share button in lobby */
+.share-btn-lobby {
+  background: none; border: 1px solid #8ab89a; color: #8ab89a; padding: 6px 16px;
+  border-radius: 6px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 12px;
+  transition: all 0.2s; margin-top: 4px;
+}
+.share-btn-lobby:hover { background: rgba(138,184,154,0.1); }
 
-/* === GAME SCREEN === */
+/* GAME */
 #game-screen {
   flex-direction: column;
   background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
-  position: relative;
-  overflow: hidden;
+  position: relative; overflow: hidden;
 }
-
-/* FIX 6: Timer bar */
-.timer-bar {
-  width: 100%; height: 28px; background: rgba(0,0,0,0.3);
-  position: relative; z-index: 5; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.timer-fill {
-  position: absolute; left: 0; top: 0; height: 100%;
-  background: #4caf50; transition: width 1s linear;
-}
-.timer-text {
-  position: relative; z-index: 1; font-size: 13px; font-weight: 700; color: white;
-}
-
-/* Other players */
 .opponents-row {
   display: flex; justify-content: center; gap: 16px; padding: 10px 16px;
-  flex-wrap: wrap; z-index: 2; flex-shrink: 0;
+  flex-wrap: wrap; z-index: 2;
 }
 .opponent {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -155,15 +133,27 @@ input::placeholder { color: #5a8a6a; }
   flex: 1; display: flex; flex-direction: column; align-items: center;
   justify-content: center; z-index: 1; position: relative;
 }
-
-/* FIX 8: Turn status in center */
-.turn-status {
-  font-size: 26px; font-weight: 900; margin-bottom: 12px;
-  transition: opacity 0.4s ease-in;
-  min-height: 36px; text-align: center;
+/* FIX 8: turn status center */
+.turn-status-center {
+  font-size: 22px; font-weight: 900; color: #8ab89a; margin-bottom: 10px;
+  transition: opacity 0.3s; min-height: 30px; text-align: center;
 }
-.turn-status.your-turn { color: #f0c040; text-shadow: 0 0 20px rgba(240,192,64,0.6); }
-.turn-status.other-turn { color: #8ab89a; }
+.turn-status-center.your-turn-center { color: #f0c040; animation: pulse 1.5s infinite; }
+.turn-status-center.fade-in { animation: fadeInTurn 0.4s ease-out; }
+@keyframes fadeInTurn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* FIX 6: timer bar */
+.timer-bar-wrap {
+  width: 200px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;
+  margin-bottom: 8px; overflow: hidden;
+}
+.timer-bar {
+  height: 100%; background: #4caf50; border-radius: 3px;
+  transition: width 1s linear, background-color 0.5s;
+}
+.timer-bar.warning { background: #f0c040; }
+.timer-bar.danger { background: #e74c3c; }
+.timer-seconds { font-size: 14px; color: #aaa; margin-bottom: 6px; font-weight: 700; }
 
 .table-cards { display: flex; gap: 6px; align-items: center; min-height: 100px; flex-wrap: wrap; justify-content: center; }
 .combo-label {
@@ -180,75 +170,76 @@ input::placeholder { color: #5a8a6a; }
   position: absolute; font-size: 18px; font-weight: 700; color: #4caf50;
   animation: trickFade 2s forwards; pointer-events: none;
 }
-@keyframes trickFade {
-  0% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-30px); }
-}
+@keyframes trickFade { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-30px); } }
 .new-trick-label { font-size: 14px; color: #8ab89a; }
 
-/* FIX 5: Observer banner */
+/* FIX 5: observer banner */
 .observer-banner {
-  text-align: center; padding: 10px 20px; background: rgba(240,192,64,0.15);
-  color: #f0c040; font-size: 14px; font-weight: 600; z-index: 10;
-  border-top: 1px solid rgba(240,192,64,0.2);
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+  background: rgba(76,175,80,0.9); color: #fff; padding: 8px 20px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; z-index: 50;
 }
 
 /* Player hand */
 .hand-area {
-  padding: 8px 16px 0; display: flex; flex-direction: column; align-items: center;
+  padding: 8px 16px 80px; display: flex; flex-direction: column; align-items: center;
   z-index: 3; background: linear-gradient(transparent, rgba(0,0,0,0.3));
-  padding-bottom: 80px; /* FIX 1: Space for fixed buttons */
 }
 .hand-cards {
   display: flex; justify-content: center; gap: 2px; flex-wrap: nowrap;
   overflow-x: auto; max-width: 100vw; padding: 8px 4px 4px;
   -webkit-overflow-scrolling: touch;
 }
+/* FIX 3: drag & drop */
+.hand-cards .card.drag-over-left { border-left: 3px solid #f0c040; }
+.hand-cards .card.drag-over-right { border-right: 3px solid #f0c040; }
+.hand-cards .card.dragging { opacity: 0.4; }
 
-/* FIX 1: Fixed bottom action bar */
+/* FIX 1: fixed action bar */
 .action-bar {
+  display: flex; gap: 10px; justify-content: center;
   position: fixed; bottom: 0; left: 0; right: 0;
-  display: flex; gap: 10px; padding: 10px 16px;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
-  justify-content: center; z-index: 50;
-  background: rgba(15, 46, 26, 0.95);
-  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 10px 16px; padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: rgba(15,46,26,0.95); z-index: 100;
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 .action-bar .btn {
-  width: auto; min-width: 110px;
-  min-height: 56px; /* FIX 1 */
-  font-size: 18px; /* FIX 1 */
-  padding: 12px 20px;
-  display: flex; align-items: center; justify-content: center;
+  width: auto; min-width: 120px; font-size: 18px; padding: 14px 24px;
+  min-height: 56px;
 }
 .btn-pass { background: #555; color: #eee; }
 .btn-pass:hover { background: #666; }
 
-/* FIX 12: Auto-pass button */
-.btn-autopass { background: #444; color: #aaa; font-size: 13px !important; min-width: 90px !important; min-height: 56px; }
+/* FIX 12: autopass */
+.btn-autopass { background: #333; color: #aaa; font-size: 13px !important; min-width: 90px !important; min-height: 40px !important; padding: 8px 12px !important; }
 .btn-autopass.active { background: #e67e22; color: #fff; }
-
-/* FIX 12: Auto-pass banner */
 .autopass-banner {
-  position: fixed; top: 32px; left: 50%; transform: translateX(-50%);
-  background: rgba(230,126,34,0.9); color: #fff; padding: 6px 16px;
-  border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 60;
+  position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
+  background: rgba(230,126,34,0.9); color: #fff; padding: 6px 16px; border-radius: 6px;
+  font-size: 12px; font-weight: 600; z-index: 50;
+}
+
+/* FIX 17: share button in game */
+.share-btn-game {
+  position: absolute; top: 10px; right: 10px; background: none; border: 1px solid #8ab89a;
+  color: #8ab89a; padding: 4px 10px; border-radius: 6px; cursor: pointer;
+  font-family: 'Montserrat', sans-serif; font-size: 11px; z-index: 20;
 }
 
 .turn-indicator {
   font-size: 13px; padding: 4px 12px; border-radius: 20px; margin-bottom: 4px;
   background: rgba(240,192,64,0.15); color: #f0c040; font-weight: 600;
-  display: none; /* FIX 8: replaced by turn-status in center */
 }
+.turn-indicator.your-turn { background: rgba(240,192,64,0.25); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-/* FIX 17: Share button in game */
-.share-game-btn {
-  position: absolute; top: 6px; right: 10px; background: none;
-  border: 1px solid rgba(240,192,64,0.4); color: #f0c040; padding: 4px 12px;
-  border-radius: 6px; cursor: pointer; font-family: 'Montserrat', sans-serif;
-  font-size: 11px; z-index: 10; transition: all 0.2s;
+/* FIX 11: reconnect overlay */
+.reconnect-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #f0c040;
 }
-.share-game-btn:hover { background: rgba(240,192,64,0.1); }
 
 /* Cards */
 .card {
@@ -270,12 +261,6 @@ input::placeholder { color: #5a8a6a; }
 .table-card { cursor: default; }
 .table-card:hover { transform: none; }
 
-/* FIX 3: Drag & drop styles */
-.card.dragging { opacity: 0.4; }
-.card.drag-over-left { border-left: 3px solid #f0c040; }
-.card.drag-over-right { border-right: 3px solid #f0c040; }
-
-/* Shake animation for invalid move */
 .shake { animation: shake 0.4s ease-in-out; }
 @keyframes shake {
   0%,100% { transform: translateX(0); }
@@ -290,37 +275,25 @@ input::placeholder { color: #5a8a6a; }
   font-size: 13px; font-weight: 600; z-index: 100; animation: tooltipFade 2s forwards;
   white-space: nowrap;
 }
-@keyframes tooltipFade {
-  0%,70% { opacity: 1; }
-  100% { opacity: 0; }
-}
+@keyframes tooltipFade { 0%,70% { opacity: 1; } 100% { opacity: 0; } }
 
-/* Toast notification */
+/* Toast notification (FIX 17) */
 .toast {
-  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-  background: rgba(76,175,80,0.9); color: white; padding: 8px 20px;
-  border-radius: 20px; font-size: 13px; font-weight: 600; z-index: 200;
-  animation: tooltipFade 2.5s forwards; pointer-events: none;
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: rgba(76,175,80,0.9); color: #fff; padding: 8px 20px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; z-index: 200; animation: tooltipFade 2s forwards;
 }
 
 /* Game log */
 .game-log {
-  position: absolute; bottom: 100px; right: 10px; width: 220px;
+  position: absolute; bottom: 90px; right: 10px; width: 220px; max-height: 80px;
   overflow-y: auto; z-index: 10; display: flex; flex-direction: column; gap: 2px;
   font-size: 11px; pointer-events: none;
 }
 .log-entry { padding: 3px 8px; background: rgba(0,0,0,0.4); border-radius: 4px; color: #aaa; }
 .log-entry.highlight { color: #f0c040; }
 
-/* FIX 11: Reconnect overlay */
-.reconnect-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7); display: flex; align-items: center;
-  justify-content: center; z-index: 1000; color: #f0c040;
-  font-size: 20px; font-weight: 700; flex-direction: column; gap: 10px;
-}
-
-/* === END SCREEN === */
+/* END SCREEN */
 #end-screen {
   flex-direction: column; align-items: center; justify-content: center;
   background: radial-gradient(ellipse at center, #1a4a2a 0%, #0f2e1a 70%);
@@ -336,41 +309,30 @@ input::placeholder { color: #5a8a6a; }
 .place-medal { font-size: 24px; width: 32px; text-align: center; }
 .place-num { font-size: 14px; color: #888; width: 32px; text-align: center; }
 
-/* === RESPONSIVE === */
 @media (max-width: 600px) {
-  #home-screen { padding-top: 40px; }
   .logo { font-size: 64px; }
   .home-form { width: 260px; }
-  .rooms-section { width: 260px; }
   .room-code { font-size: 36px; }
   .player-list { width: 280px; }
+  .room-list-section { width: 260px; }
   .card { width: 42px; height: 62px; }
   .card .rank { font-size: 14px; }
   .card .suit { font-size: 12px; }
-  .game-log { width: 160px; font-size: 10px; }
+  .game-log { display: none; }
   .opponent { min-width: 56px; padding: 6px 8px; }
   .combo-label { font-size: 16px; }
-  .turn-status { font-size: 20px; }
-  .action-bar .btn { min-width: 90px; font-size: 16px !important; padding: 10px 14px; }
+  .turn-status-center { font-size: 18px; }
 }
-
 @media (max-width: 380px) {
   .card { width: 36px; height: 54px; }
   .card .rank { font-size: 12px; }
   .card .suit { font-size: 10px; }
-  .action-bar .btn { min-width: 80px; font-size: 15px !important; }
 }
 </style>
 </head>
 <body>
 
-<!-- FIX 11: Reconnect overlay -->
-<div class="reconnect-overlay hidden" id="reconnect-overlay">
-  <div>Переподключение...</div>
-  <div style="font-size:13px;color:#8ab89a">Восстанавливаем соединение</div>
-</div>
-
-<!-- === HOME SCREEN === -->
+<!-- HOME SCREEN -->
 <div id="home-screen" class="screen active">
   <div class="logo">ZA</div>
   <div class="logo-sub">Карточная игра</div>
@@ -384,67 +346,48 @@ input::placeholder { color: #5a8a6a; }
       <button class="btn btn-primary" id="join-room-btn">Войти</button>
     </div>
   </div>
-  <!-- FIX 2: Active rooms list -->
-  <div class="rooms-section" id="rooms-section">
-    <div class="rooms-title">Активные комнаты</div>
-    <div class="rooms-list" id="rooms-list">
-      <div class="no-rooms">Нет активных комнат</div>
-    </div>
+  <!-- FIX 2: room list -->
+  <div class="room-list-section">
+    <div class="room-list-title">Активные комнаты</div>
+    <ul class="room-list" id="room-list"></ul>
   </div>
 </div>
 
-<!-- === LOBBY SCREEN === -->
+<!-- LOBBY SCREEN -->
 <div id="lobby-screen" class="screen">
   <button class="lobby-back" id="lobby-back-btn">&larr; Назад</button>
   <div class="room-code" id="lobby-room-code">ZA-XXXX</div>
-  <!-- FIX 17: Share button -->
-  <button class="share-btn" id="lobby-share-btn">Поделиться</button>
+  <button class="copy-link-btn" id="copy-link-btn">Скопировать ссылку</button>
+  <button class="share-btn-lobby" id="share-btn-lobby">Поделиться</button>
   <ul class="player-list" id="player-list"></ul>
   <div class="lobby-status" id="lobby-status">Ожидание игроков...</div>
   <button class="btn btn-primary" id="start-game-btn" style="width:300px" disabled>Начать игру</button>
 </div>
 
-<!-- === GAME SCREEN === -->
+<!-- GAME SCREEN -->
 <div id="game-screen" class="screen">
-  <!-- FIX 6: Timer bar -->
-  <div class="timer-bar" id="timer-bar">
-    <div class="timer-fill" id="timer-fill"></div>
-    <span class="timer-text" id="timer-text">30</span>
-  </div>
-
+  <button class="share-btn-game" id="share-btn-game">Поделиться</button>
   <div class="opponents-row" id="opponents-row"></div>
-
   <div class="table-center">
-    <!-- FIX 8: Turn status -->
-    <div class="turn-status" id="turn-status"></div>
+    <div class="turn-status-center" id="turn-status-center"></div>
+    <div class="timer-seconds" id="timer-seconds"></div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
     <div class="table-cards" id="table-cards"></div>
     <div class="combo-label" id="combo-label"></div>
   </div>
-
-  <!-- FIX 5: Observer banner -->
-  <div class="observer-banner hidden" id="observer-banner"></div>
-
-  <div class="hand-area" id="hand-area">
+  <div class="hand-area">
+    <div class="turn-indicator" id="turn-indicator"></div>
     <div class="hand-cards" id="hand-cards"></div>
   </div>
-
-  <!-- FIX 1: Fixed bottom action bar -->
   <div class="action-bar" id="action-bar">
     <button class="btn btn-primary" id="play-btn" disabled>Сыграть</button>
     <button class="btn btn-pass" id="pass-btn">Пас</button>
     <button class="btn btn-autopass" id="autopass-btn">Автопас</button>
   </div>
-
-  <!-- FIX 17: Share button in game -->
-  <button class="share-game-btn" id="share-game-btn">Поделиться</button>
-
-  <!-- FIX 12: Auto-pass banner -->
-  <div class="autopass-banner hidden" id="autopass-banner">Автопас включён</div>
-
   <div class="game-log" id="game-log"></div>
 </div>
 
-<!-- === END SCREEN === -->
+<!-- END SCREEN -->
 <div id="end-screen" class="screen">
   <div class="end-title">Игра окончена!</div>
   <ul class="standings-list" id="standings-list"></ul>
@@ -454,57 +397,36 @@ input::placeholder { color: #5a8a6a; }
 <script src="/socket.io/socket.io.js"></script>
 <script>
 // === SOCKET & STATE ===
-const socket = io({ reconnection: true, reconnectionDelay: 1000, reconnectionAttempts: Infinity });
+const socket = io({ reconnection: true, reconnectionAttempts: 20, reconnectionDelay: 1000 });
 
 const state = {
-  myId: null,
-  roomCode: null,
-  isHost: false,
-  players: [],
-  yourHand: [],
-  handOrder: [], // FIX 3: custom hand order for drag & drop
-  selectedCards: [],
-  tableCombo: null,
-  tableComboName: '',
-  currentPlayerId: null,
-  turnOrder: [],
-  standings: [],
-  isObserver: false,    // FIX 2/5: observer mode
-  isFinished: false,    // FIX 5: finished player observing
-  autoPass: false,      // FIX 12: auto-pass toggle
-  justDragged: false,   // FIX 3: prevent click after drag
+  myId: null, roomCode: null, isHost: false, players: [], yourHand: [],
+  selectedCards: [], tableCombo: null, tableComboName: '', currentPlayerId: null,
+  turnOrder: [], standings: [], timerSeconds: 30, isObserving: false,
+  autopass: false, isObserverMode: false, handOrder: [],
+  isFirstTurn: false, firstTurnPlayerId: null,
 };
 
-// === CONSTANTS ===
 const RANK_VALUE = { '4':1,'5':2,'6':3,'7':4,'8':5,'9':6,'10':7,'J':8,'Q':9,'K':10,'A':11,'2':12,'3':13,'JOK':14 };
-const SUIT_SYMBOLS = { s: '\u2660', h: '\u2665', d: '\u2666', c: '\u2663' };
+const SUIT_SYMBOLS = { s:'\u2660', h:'\u2665', d:'\u2666', c:'\u2663' };
 
-function getCardRank(id) {
-  if (id.startsWith('JOK')) return 'JOK';
-  if (id.startsWith('10')) return '10';
-  return id.slice(0, -1);
-}
-function getCardSuit(id) {
-  if (id.startsWith('JOK')) return null;
-  if (id.startsWith('10')) return id.slice(2);
-  return id.slice(-1);
-}
+function getCardRank(id) { if (id.startsWith('JOK')) return 'JOK'; if (id.startsWith('10')) return '10'; return id.slice(0,-1); }
+function getCardSuit(id) { if (id.startsWith('JOK')) return null; if (id.startsWith('10')) return id.slice(2); return id.slice(-1); }
 function getCardValue(id) { return RANK_VALUE[getCardRank(id)]; }
 
-// === SCREEN MANAGEMENT ===
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-// === UI ELEMENTS ===
 const $ = id => document.getElementById(id);
 
-// === FIX 16: Load saved name ===
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  // Remove observer banners when switching screens
+  document.querySelectorAll('.observer-banner,.autopass-banner').forEach(e => e.remove());
+}
+
+// FIX 16: load saved name
 window.addEventListener('load', () => {
   const savedName = localStorage.getItem('za_player_name');
   if (savedName) $('nickname-input').value = savedName;
-
   const params = new URLSearchParams(window.location.search);
   const roomParam = params.get('room');
   if (roomParam) {
@@ -513,22 +435,18 @@ window.addEventListener('load', () => {
   }
 });
 
-// FIX 16: Save name on input
+// FIX 16: save name on input
 $('nickname-input').addEventListener('input', () => {
-  const val = $('nickname-input').value.trim();
-  if (val) localStorage.setItem('za_player_name', val);
+  localStorage.setItem('za_player_name', $('nickname-input').value.trim());
 });
 
-// === HOME SCREEN ===
-$('show-join-btn').onclick = () => {
-  $('join-section').classList.toggle('show');
-};
+// === HOME ===
+$('show-join-btn').onclick = () => { $('join-section').classList.toggle('show'); };
 
 $('create-room-btn').onclick = () => {
   const nick = $('nickname-input').value.trim();
   if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
   $('home-error').textContent = '';
-  localStorage.setItem('za_player_name', nick);
   socket.emit('create_room', { nickname: nick, maxPlayers: 8 });
 };
 
@@ -538,191 +456,85 @@ $('join-room-btn').onclick = () => {
   if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
   if (!code) { $('home-error').textContent = 'Введите код комнаты'; return; }
   $('home-error').textContent = '';
-  localStorage.setItem('za_player_name', nick);
   socket.emit('join_room', { roomCode: code, nickname: nick });
 };
 
-$('nickname-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') $('create-room-btn').click();
-});
-$('room-code-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') $('join-room-btn').click();
-});
+$('nickname-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('create-room-btn').click(); });
+$('room-code-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('join-room-btn').click(); });
 
-// === FIX 2: Room list rendering ===
-function renderRoomList(rooms) {
-  const container = $('rooms-list');
-  container.innerHTML = '';
-
-  if (!rooms || rooms.length === 0) {
-    container.innerHTML = '<div class="no-rooms">Нет активных комнат</div>';
-    return;
-  }
-
-  rooms.forEach(room => {
-    const item = document.createElement('div');
-    item.className = 'room-item';
-
-    let statusText, statusClass, btnText, btnAction;
-    if (room.status === 'lobby' && room.playerCount < room.maxPlayers) {
-      statusText = '\uD83D\uDFE1 Ожидание';
-      statusClass = 'waiting';
-      btnText = 'Войти';
-      btnAction = () => {
-        const nick = $('nickname-input').value.trim();
-        if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
-        localStorage.setItem('za_player_name', nick);
-        socket.emit('join_room', { roomCode: room.code, nickname: nick });
-      };
-    } else if (room.status === 'playing') {
-      statusText = '\uD83D\uDFE2 Идёт игра';
-      statusClass = 'playing';
-      btnText = 'Наблюдать';
-      btnAction = () => {
-        const nick = $('nickname-input').value.trim() || 'Observer';
-        socket.emit('join_as_observer', { roomCode: room.code, nickname: nick });
-      };
-    } else {
-      statusText = '\uD83D\uDD34 Полная';
-      statusClass = 'full';
-      btnText = 'В очередь';
-      btnAction = () => {
-        const nick = $('nickname-input').value.trim();
-        if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
-        localStorage.setItem('za_player_name', nick);
-        socket.emit('join_queue', { roomCode: room.code, nickname: nick });
-      };
-    }
-
-    const infoDiv = document.createElement('div');
-    infoDiv.className = 'room-info';
-    infoDiv.innerHTML = `
-      <div class="room-code-small">${room.code}</div>
-      <div class="room-host">${room.hostNickname} (${room.playerCount}/${room.maxPlayers})</div>
-      <div class="room-status-text ${statusClass}">${statusText}</div>
-    `;
-
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-primary btn-small';
-    btn.textContent = btnText;
-    btn.onclick = btnAction;
-
-    item.appendChild(infoDiv);
-    item.appendChild(btn);
-    container.appendChild(item);
-  });
-}
-
-// === LOBBY SCREEN ===
-
-// FIX 17: Share function
-function shareRoom(roomCode) {
-  const url = 'https://za-game-production.up.railway.app/?room=' + roomCode;
-
+// === LOBBY ===
+function shareRoom() {
+  const url = window.location.origin + '/?room=' + state.roomCode;
   if (navigator.share) {
-    navigator.share({ title: 'ZA — Карточная игра', text: 'Присоединяйся к игре!', url })
-      .catch(() => copyToClipboard(url));
+    navigator.share({ title: 'ZA Game', text: 'Присоединяйся к игре!', url }).catch(() => {});
   } else {
-    copyToClipboard(url);
+    navigator.clipboard.writeText(url).then(() => showToast('Ссылка скопирована!'));
   }
 }
 
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('Ссылка скопирована!');
-  }).catch(() => {
-    // Fallback
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
-    showToast('Ссылка скопирована!');
+$('copy-link-btn').onclick = () => {
+  const url = window.location.origin + '/?room=' + state.roomCode;
+  navigator.clipboard.writeText(url).then(() => {
+    $('copy-link-btn').textContent = 'Скопировано!';
+    $('copy-link-btn').classList.add('copied');
+    setTimeout(() => { $('copy-link-btn').textContent = 'Скопировать ссылку'; $('copy-link-btn').classList.remove('copied'); }, 2000);
   });
-}
-
-function showToast(msg) {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.textContent = msg;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2500);
-}
-
-$('lobby-share-btn').onclick = () => shareRoom(state.roomCode);
-$('share-game-btn').onclick = () => shareRoom(state.roomCode);
-
-$('start-game-btn').onclick = () => {
-  socket.emit('start_game');
 };
+$('share-btn-lobby').onclick = shareRoom;
+$('share-btn-game').onclick = shareRoom;
 
-$('lobby-back-btn').onclick = () => {
-  showScreen('home-screen');
-};
+$('start-game-btn').onclick = () => { socket.emit('start_game'); };
+$('lobby-back-btn').onclick = () => { showScreen('home-screen'); };
 
-// === GAME SCREEN ===
+// === GAME ===
 $('play-btn').onclick = () => {
   if (state.selectedCards.length === 0) return;
   socket.emit('play_cards', { cardIds: state.selectedCards });
 };
+$('pass-btn').onclick = () => { socket.emit('pass_turn'); };
 
-$('pass-btn').onclick = () => {
-  socket.emit('pass_turn');
-};
-
-// FIX 12: Auto-pass toggle
+// FIX 12: autopass toggle
 $('autopass-btn').onclick = () => {
-  state.autoPass = !state.autoPass;
-  $('autopass-btn').classList.toggle('active', state.autoPass);
-  if (state.autoPass) {
-    $('autopass-banner').classList.remove('hidden');
-  } else {
-    $('autopass-banner').classList.add('hidden');
+  state.autopass = !state.autopass;
+  $('autopass-btn').classList.toggle('active', state.autopass);
+  document.querySelectorAll('.autopass-banner').forEach(e => e.remove());
+  if (state.autopass) {
+    const b = document.createElement('div');
+    b.className = 'autopass-banner';
+    b.textContent = 'Автопас включён';
+    document.body.appendChild(b);
   }
 };
 
-// === END SCREEN ===
-$('play-again-btn').onclick = () => {
-  socket.emit('play_again');
-};
+$('play-again-btn').onclick = () => { socket.emit('play_again'); };
+
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
 
 // === CARD RENDERING ===
 function createCardEl(cardId, opts = {}) {
   const el = document.createElement('div');
   el.className = 'card';
   if (opts.tableCard) el.classList.add('table-card');
-
   const rank = getCardRank(cardId);
   const suit = getCardSuit(cardId);
-
   if (rank === 'JOK') {
     el.classList.add('joker');
     el.innerHTML = '<span class="suit">\u2605</span><span class="rank">JOKER</span>';
     return el;
   }
-
   const isRed = suit === 'h' || suit === 'd';
   el.classList.add(isRed ? 'red' : 'black');
-  el.innerHTML = `<span class="rank">${rank}</span><span class="suit">${SUIT_SYMBOLS[suit] || ''}</span>`;
+  el.innerHTML = `<span class="rank">${rank}</span><span class="suit">${SUIT_SYMBOLS[suit]||''}</span>`;
   return el;
 }
 
-// === FIX 3: Hand order management ===
-function updateHandOrder(newHand) {
-  // Remove cards no longer in hand
-  state.handOrder = state.handOrder.filter(c => newHand.includes(c));
-  // Add new cards (sorted) at end
-  const newCards = newHand.filter(c => !state.handOrder.includes(c));
-  newCards.sort((a, b) => getCardValue(a) - getCardValue(b));
-  state.handOrder.push(...newCards);
-}
-
-// === RENDER FUNCTIONS ===
+// === RENDER ===
 function renderLobby() {
   $('lobby-room-code').textContent = state.roomCode;
   const list = $('player-list');
@@ -738,17 +550,57 @@ function renderLobby() {
     }
     list.appendChild(li);
   });
-
   const count = state.players.length;
-  $('lobby-status').textContent = count < 3
-    ? `Ожидание игроков... (${count}/3 минимум)`
-    : `Игроков: ${count} — Готово!`;
-
+  $('lobby-status').textContent = count < 3 ? `Ожидание игроков... (${count}/3 минимум)` : `Игроков: ${count} — Готово!`;
   $('start-game-btn').disabled = !state.isHost || count < 3;
   $('start-game-btn').textContent = state.isHost ? 'Начать игру' : 'Ожидание хоста...';
 }
 
-// FIX 4: Remove card count, show only name and card backs
+// FIX 2: render room list
+function renderRoomList(rooms) {
+  const list = $('room-list');
+  list.innerHTML = '';
+  rooms.forEach(r => {
+    if (r.type === 'finished') return;
+    const li = document.createElement('li');
+    li.className = 'room-list-item';
+    const icon = r.type === 'waiting' ? '\uD83D\uDFE1' : r.type === 'playing' ? '\uD83D\uDFE2' : '\uD83D\uDD34';
+    const info = document.createElement('span');
+    info.className = 'room-list-info';
+    info.textContent = `${icon} ${r.code} (${r.playerCount}/${r.maxPlayers})`;
+    li.appendChild(info);
+    const btn = document.createElement('button');
+    btn.className = 'room-list-btn';
+    if (r.type === 'waiting') {
+      btn.classList.add('join');
+      btn.textContent = 'Войти';
+      btn.onclick = () => {
+        const nick = $('nickname-input').value.trim();
+        if (!nick) { $('home-error').textContent = 'Введите никнейм'; return; }
+        socket.emit('join_room', { roomCode: r.code, nickname: nick });
+      };
+    } else if (r.type === 'playing') {
+      btn.classList.add('observe');
+      btn.textContent = 'Наблюдать';
+      btn.onclick = () => {
+        const nick = $('nickname-input').value.trim() || 'Observer';
+        socket.emit('join_as_observer', { roomCode: r.code, nickname: nick });
+      };
+    } else {
+      btn.classList.add('queue');
+      btn.textContent = 'В очередь';
+      btn.onclick = () => {
+        const nick = $('nickname-input').value.trim() || 'Player';
+        socket.emit('join_queue', { roomCode: r.code, nickname: nick });
+        btn.textContent = 'В очереди';
+        btn.disabled = true;
+      };
+    }
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
+}
+
 function renderOpponents() {
   const row = $('opponents-row');
   row.innerHTML = '';
@@ -758,23 +610,27 @@ function renderOpponents() {
     div.className = 'opponent';
     if (p.id === state.currentPlayerId) div.classList.add('current-turn');
     if (p.finished) div.classList.add('finished');
-
     const cardsDiv = document.createElement('div');
     cardsDiv.className = 'opponent-cards';
+    // FIX 4: show card backs only, no count number
     const count = Math.min(p.cardCount, 10);
     for (let i = 0; i < count; i++) {
       const back = document.createElement('div');
       back.className = 'card-back';
       cardsDiv.appendChild(back);
     }
-
     const name = document.createElement('div');
     name.className = 'opponent-name';
     name.textContent = p.nickname;
-
     div.appendChild(cardsDiv);
     div.appendChild(name);
-    // FIX 4: No card count number
+    // FIX 4: no card count text, only name + card backs
+    if (p.finished) {
+      const fin = document.createElement('div');
+      fin.style.cssText = 'font-size:10px;color:#4caf50;';
+      fin.textContent = 'Вышел';
+      div.appendChild(fin);
+    }
     row.appendChild(div);
   });
 }
@@ -783,308 +639,233 @@ function renderTableCards() {
   const container = $('table-cards');
   const label = $('combo-label');
   container.innerHTML = '';
-
   if (!state.tableCombo) {
     label.textContent = '';
-    const newLabel = document.createElement('div');
-    newLabel.className = 'new-trick-label';
-    newLabel.textContent = 'Новый раунд — ходите!';
-    container.appendChild(newLabel);
+    const nl = document.createElement('div');
+    nl.className = 'new-trick-label';
+    nl.textContent = 'Новый раунд — ходите!';
+    container.appendChild(nl);
     return;
   }
-
-  state.tableCombo.cards.forEach(cid => {
-    container.appendChild(createCardEl(cid, { tableCard: true }));
-  });
-
+  state.tableCombo.cards.forEach(cid => { container.appendChild(createCardEl(cid, { tableCard: true })); });
   label.textContent = state.tableComboName;
   label.classList.remove('combo-flash');
   void label.offsetWidth;
   label.classList.add('combo-flash');
 }
 
-// FIX 3: Render hand with drag & drop
+// FIX 3: drag & drop for hand reorder
+let dragSrcIndex = null;
+
 function renderHand() {
   const container = $('hand-cards');
   container.innerHTML = '';
 
-  // Use handOrder for rendering (preserves custom order)
-  state.handOrder.forEach((cardId, index) => {
+  // Build ordered hand: use handOrder if valid, else sort
+  let ordered;
+  if (state.handOrder.length > 0 && state.handOrder.length === state.yourHand.length &&
+      state.handOrder.every(c => state.yourHand.includes(c))) {
+    ordered = state.handOrder;
+  } else {
+    ordered = [...state.yourHand].sort((a, b) => getCardValue(a) - getCardValue(b));
+    state.handOrder = [...ordered];
+  }
+
+  ordered.forEach((cardId, idx) => {
     const el = createCardEl(cardId);
     if (state.selectedCards.includes(cardId)) el.classList.add('selected');
+    el.setAttribute('draggable', 'true');
+    el.dataset.idx = idx;
 
     // Click to select
     el.onclick = () => {
-      if (state.justDragged) { state.justDragged = false; return; }
-      const idx = state.selectedCards.indexOf(cardId);
-      if (idx === -1) {
-        state.selectedCards.push(cardId);
-      } else {
-        state.selectedCards.splice(idx, 1);
-      }
+      const i = state.selectedCards.indexOf(cardId);
+      if (i === -1) state.selectedCards.push(cardId);
+      else state.selectedCards.splice(i, 1);
       renderHand();
       updatePlayButton();
     };
 
-    // FIX 3: HTML5 Drag & Drop
-    el.draggable = true;
-    el.dataset.cardId = cardId;
-    el.dataset.index = String(index);
-
-    el.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', cardId);
-      e.dataTransfer.effectAllowed = 'move';
+    // HTML5 drag
+    el.addEventListener('dragstart', e => {
+      dragSrcIndex = idx;
       el.classList.add('dragging');
-      state.draggedCardId = cardId;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', idx.toString());
     });
-
-    el.addEventListener('dragend', () => {
-      el.classList.remove('dragging');
-      state.draggedCardId = null;
-      container.querySelectorAll('.card').forEach(c => {
-        c.classList.remove('drag-over-left', 'drag-over-right');
-      });
-    });
-
-    el.addEventListener('dragover', (e) => {
+    el.addEventListener('dragend', () => { el.classList.remove('dragging'); clearDragHighlights(); });
+    el.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      const rect = el.getBoundingClientRect();
-      const midX = rect.left + rect.width / 2;
-      container.querySelectorAll('.card').forEach(c => {
-        c.classList.remove('drag-over-left', 'drag-over-right');
-      });
-      if (e.clientX < midX) {
-        el.classList.add('drag-over-left');
-      } else {
-        el.classList.add('drag-over-right');
+      clearDragHighlights();
+      const tgt = parseInt(el.dataset.idx);
+      if (tgt !== dragSrcIndex) {
+        el.classList.add(tgt > dragSrcIndex ? 'drag-over-left' : 'drag-over-right');
       }
     });
-
-    el.addEventListener('dragleave', () => {
-      el.classList.remove('drag-over-left', 'drag-over-right');
-    });
-
-    el.addEventListener('drop', (e) => {
+    el.addEventListener('dragleave', () => { el.classList.remove('drag-over-left', 'drag-over-right'); });
+    el.addEventListener('drop', e => {
       e.preventDefault();
-      const draggedId = e.dataTransfer.getData('text/plain');
-      if (draggedId && draggedId !== cardId) {
-        const fromIdx = state.handOrder.indexOf(draggedId);
-        const toIdx = state.handOrder.indexOf(cardId);
-        if (fromIdx !== -1 && toIdx !== -1) {
-          state.handOrder.splice(fromIdx, 1);
-          // Determine insert position based on mouse position
-          const rect = el.getBoundingClientRect();
-          const midX = rect.left + rect.width / 2;
-          const newToIdx = state.handOrder.indexOf(cardId);
-          if (e.clientX < midX) {
-            state.handOrder.splice(newToIdx, 0, draggedId);
-          } else {
-            state.handOrder.splice(newToIdx + 1, 0, draggedId);
-          }
-          renderHand();
-        }
-      }
-      container.querySelectorAll('.card').forEach(c => {
-        c.classList.remove('drag-over-left', 'drag-over-right');
-      });
-    });
-
-    // FIX 3: Touch events for mobile drag & drop
-    let touchTimer = null;
-    let touchState = null;
-
-    el.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      touchState = {
-        cardId,
-        startX: touch.clientX,
-        startY: touch.clientY,
-        isDragging: false,
-        clone: null,
-      };
-      touchTimer = setTimeout(() => {
-        if (touchState) {
-          touchState.isDragging = true;
-          el.classList.add('dragging');
-          // Create visual clone
-          const clone = el.cloneNode(true);
-          clone.style.position = 'fixed';
-          clone.style.zIndex = '1000';
-          clone.style.opacity = '0.8';
-          clone.style.pointerEvents = 'none';
-          clone.style.width = el.offsetWidth + 'px';
-          clone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
-          clone.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
-          clone.style.transform = 'scale(1.1)';
-          document.body.appendChild(clone);
-          touchState.clone = clone;
-        }
-      }, 250);
-    }, { passive: true });
-
-    el.addEventListener('touchmove', (e) => {
-      if (!touchState) return;
-      const touch = e.touches[0];
-      const dx = Math.abs(touch.clientX - touchState.startX);
-      const dy = Math.abs(touch.clientY - touchState.startY);
-
-      if (!touchState.isDragging) {
-        if (dx > 10 || dy > 10) {
-          clearTimeout(touchTimer);
-          touchState = null;
-          return;
-        }
-        return;
-      }
-
-      e.preventDefault();
-      if (touchState.clone) {
-        touchState.clone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
-        touchState.clone.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
-      }
-
-      // Highlight drop target
-      container.querySelectorAll('.card').forEach(c => {
-        c.classList.remove('drag-over-left', 'drag-over-right');
-      });
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (target) {
-        const targetCard = target.closest('.card');
-        if (targetCard && targetCard !== el) {
-          const rect = targetCard.getBoundingClientRect();
-          if (touch.clientX < rect.left + rect.width / 2) {
-            targetCard.classList.add('drag-over-left');
-          } else {
-            targetCard.classList.add('drag-over-right');
-          }
-        }
-      }
-    }, { passive: false });
-
-    el.addEventListener('touchend', (e) => {
-      clearTimeout(touchTimer);
-      if (!touchState) return;
-
-      if (touchState.isDragging) {
-        const touch = e.changedTouches[0];
-        if (touchState.clone) touchState.clone.remove();
-        el.classList.remove('dragging');
-
-        // Find drop target
-        const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target) {
-          const targetCard = target.closest('.card');
-          if (targetCard && targetCard.dataset.cardId && targetCard.dataset.cardId !== touchState.cardId) {
-            const fromIdx = state.handOrder.indexOf(touchState.cardId);
-            const targetId = targetCard.dataset.cardId;
-            if (fromIdx !== -1) {
-              state.handOrder.splice(fromIdx, 1);
-              const rect = targetCard.getBoundingClientRect();
-              const newToIdx = state.handOrder.indexOf(targetId);
-              if (touch.clientX < rect.left + rect.width / 2) {
-                state.handOrder.splice(newToIdx, 0, touchState.cardId);
-              } else {
-                state.handOrder.splice(newToIdx + 1, 0, touchState.cardId);
-              }
-            }
-          }
-        }
-
-        container.querySelectorAll('.card').forEach(c => {
-          c.classList.remove('drag-over-left', 'drag-over-right');
-        });
-
-        state.justDragged = true;
-        setTimeout(() => { state.justDragged = false; }, 100);
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
+      const to = parseInt(el.dataset.idx);
+      if (from !== to) {
+        const card = state.handOrder.splice(from, 1)[0];
+        state.handOrder.splice(to, 0, card);
         renderHand();
       }
-      touchState = null;
     });
 
-    el.addEventListener('touchcancel', () => {
-      clearTimeout(touchTimer);
-      if (touchState && touchState.clone) touchState.clone.remove();
-      el.classList.remove('dragging');
-      touchState = null;
+    // Touch drag (mobile)
+    let touchClone = null, touchStartX = 0, touchStartY = 0, touchMoved = false;
+    el.addEventListener('touchstart', e => {
+      dragSrcIndex = idx;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchMoved = false;
+    }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) touchMoved = true;
+      if (!touchMoved) return;
+      e.preventDefault();
+      if (!touchClone) {
+        touchClone = el.cloneNode(true);
+        touchClone.style.cssText = 'position:fixed;z-index:999;pointer-events:none;opacity:0.7;';
+        document.body.appendChild(touchClone);
+        el.classList.add('dragging');
+      }
+      touchClone.style.left = (e.touches[0].clientX - 26) + 'px';
+      touchClone.style.top = (e.touches[0].clientY - 37) + 'px';
+    }, { passive: false });
+    el.addEventListener('touchend', e => {
+      if (touchClone) {
+        touchClone.remove();
+        touchClone = null;
+        el.classList.remove('dragging');
+        const touch = e.changedTouches[0];
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const cardEl = target ? target.closest('.card') : null;
+        if (cardEl && cardEl.dataset.idx !== undefined) {
+          const to = parseInt(cardEl.dataset.idx);
+          if (dragSrcIndex !== to) {
+            const card = state.handOrder.splice(dragSrcIndex, 1)[0];
+            state.handOrder.splice(to, 0, card);
+            renderHand();
+          }
+        }
+      }
+      clearDragHighlights();
     });
 
     container.appendChild(el);
   });
 }
 
+function clearDragHighlights() {
+  document.querySelectorAll('.drag-over-left,.drag-over-right').forEach(e => {
+    e.classList.remove('drag-over-left', 'drag-over-right');
+  });
+}
+
 function updatePlayButton() {
   const isMyTurn = state.currentPlayerId === state.myId;
   const hasSelection = state.selectedCards.length > 0;
-  $('play-btn').disabled = !isMyTurn || !hasSelection || state.isObserver || state.isFinished;
-  $('pass-btn').disabled = !isMyTurn || !state.tableCombo || state.isObserver || state.isFinished;
+  $('play-btn').disabled = !isMyTurn || !hasSelection || state.isObserving;
+  $('pass-btn').disabled = !isMyTurn || !state.tableCombo || state.isObserving;
 }
 
-// FIX 8: Turn status in center of table
-function renderTurnStatus() {
-  const el = $('turn-status');
-  if (state.currentPlayerId === state.myId && !state.isObserver && !state.isFinished) {
+// FIX 8: turn status center
+let lastTurnStatusPlayer = null;
+function renderTurnStatusCenter() {
+  const el = $('turn-status-center');
+  if (state.currentPlayerId === state.myId && !state.isObserving) {
     el.textContent = 'Ваш ход!';
-    el.className = 'turn-status your-turn';
+    el.className = 'turn-status-center your-turn-center fade-in';
   } else {
     const p = state.players.find(pl => pl.id === state.currentPlayerId);
     el.textContent = p ? `Ход: ${p.nickname}` : '';
-    el.className = 'turn-status other-turn';
+    el.className = 'turn-status-center fade-in';
   }
-  // Fade-in animation
-  el.style.opacity = '0';
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      el.style.opacity = '1';
-    });
-  });
+  if (lastTurnStatusPlayer !== state.currentPlayerId) {
+    el.classList.remove('fade-in');
+    void el.offsetWidth;
+    el.classList.add('fade-in');
+    lastTurnStatusPlayer = state.currentPlayerId;
+  }
+}
+
+function renderTurnIndicator() {
+  const el = $('turn-indicator');
+  if (state.isObserving) {
+    el.textContent = '';
+    el.className = 'turn-indicator';
+    return;
+  }
+  if (state.currentPlayerId === state.myId) {
+    el.textContent = 'Ваш ход!';
+    el.className = 'turn-indicator your-turn';
+  } else {
+    const p = state.players.find(pl => pl.id === state.currentPlayerId);
+    el.textContent = p ? `Ходит: ${p.nickname}` : '';
+    el.className = 'turn-indicator';
+  }
+}
+
+// FIX 6: timer display
+function renderTimer(seconds) {
+  const bar = $('timer-bar');
+  const txt = $('timer-seconds');
+  if (seconds === undefined || seconds === null) seconds = state.timerSeconds;
+  const pct = Math.max(0, (seconds / 30) * 100);
+  bar.style.width = pct + '%';
+  bar.classList.remove('warning', 'danger');
+  if (seconds <= 5) bar.classList.add('danger');
+  else if (seconds <= 10) bar.classList.add('warning');
+  txt.textContent = seconds > 0 ? seconds + 'с' : '';
 }
 
 function renderGame() {
   renderOpponents();
   renderTableCards();
-  renderTurnStatus();
-
-  if (state.isObserver || state.isFinished) {
-    $('hand-area').style.display = 'none';
-    $('observer-banner').classList.remove('hidden');
-    $('observer-banner').textContent = state.isFinished
-      ? 'Вы закончили! Наблюдаете за игрой...'
-      : 'Режим наблюдателя';
-    // Hide action buttons for observers
-    $('action-bar').style.display = state.isFinished ? 'none' : 'none';
-  } else {
-    $('hand-area').style.display = '';
-    $('observer-banner').classList.add('hidden');
-    $('action-bar').style.display = '';
-    renderHand();
-  }
-
+  renderHand();
+  renderTurnIndicator();
+  renderTurnStatusCenter();
   updatePlayButton();
+  renderTimer();
+  renderObserverBanner();
 }
 
-// FIX 7: Only last 2 log entries
+// FIX 5: observer banner for finished players
+function renderObserverBanner() {
+  document.querySelectorAll('.observer-banner').forEach(e => e.remove());
+  if (state.isObserving && !state.isObserverMode) {
+    const b = document.createElement('div');
+    b.className = 'observer-banner';
+    b.textContent = 'Вы закончили! Наблюдаете за игрой...';
+    document.body.appendChild(b);
+  }
+}
+
+// FIX 7: only last 2 log entries
 function addLog(text, highlight = false) {
   const log = $('game-log');
   const entry = document.createElement('div');
   entry.className = 'log-entry' + (highlight ? ' highlight' : '');
   entry.textContent = text;
   log.appendChild(entry);
-  log.scrollTop = log.scrollHeight;
-
-  // FIX 7: Keep only last 2
+  // FIX 7: keep only 2 entries
   while (log.children.length > 2) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
 }
 
 function showInvalidTooltip(msg) {
   const existing = document.querySelector('.invalid-tooltip');
   if (existing) existing.remove();
-
   const el = document.createElement('div');
   el.className = 'invalid-tooltip';
   el.textContent = msg;
   document.body.appendChild(el);
-
   const hand = $('hand-cards');
   hand.classList.add('shake');
   setTimeout(() => hand.classList.remove('shake'), 400);
@@ -1102,84 +883,99 @@ function showTrickWon(nickname) {
 function renderStandings() {
   const list = $('standings-list');
   list.innerHTML = '';
-  const medals = ['\uD83E\uDD47', '\uD83E\uDD48', '\uD83E\uDD49'];
+  const medals = ['\uD83E\uDD47','\uD83E\uDD48','\uD83E\uDD49'];
   state.standings.forEach((s, i) => {
     const li = document.createElement('li');
-    if (i < 3) {
-      li.innerHTML = `<span class="place-medal">${medals[i]}</span><span>${s.nickname}</span>`;
-    } else {
-      li.innerHTML = `<span class="place-num">${s.place}</span><span>${s.nickname}</span>`;
-    }
+    if (i < 3) li.innerHTML = `<span class="place-medal">${medals[i]}</span><span>${s.nickname}</span>`;
+    else li.innerHTML = `<span class="place-num">${s.place}</span><span>${s.nickname}</span>`;
     list.appendChild(li);
   });
 }
 
-// === FIX 6: Timer display ===
-function updateTimer(secondsLeft) {
-  const fill = $('timer-fill');
-  const text = $('timer-text');
-  const pct = Math.max(0, (secondsLeft / 30) * 100);
-  fill.style.width = pct + '%';
-  text.textContent = secondsLeft;
+// === FIX 11: reconnect logic ===
+let reconnectOverlay = null;
 
-  if (secondsLeft <= 5) {
-    fill.style.background = '#e74c3c';
-  } else if (secondsLeft <= 15) {
-    fill.style.background = '#f0c040';
-  } else {
-    fill.style.background = '#4caf50';
-  }
+function showReconnecting() {
+  if (reconnectOverlay) return;
+  reconnectOverlay = document.createElement('div');
+  reconnectOverlay.className = 'reconnect-overlay';
+  reconnectOverlay.textContent = 'Переподключение...';
+  document.body.appendChild(reconnectOverlay);
 }
 
-// === SOCKET EVENTS ===
+function hideReconnecting() {
+  if (reconnectOverlay) { reconnectOverlay.remove(); reconnectOverlay = null; }
+}
 
-socket.on('connect', () => {
-  state.myId = socket.id;
-  $('reconnect-overlay').classList.add('hidden');
-
-  // FIX 11: Try to rejoin after reconnect
-  const savedRoom = sessionStorage.getItem('za_room_code');
-  const savedPlayer = sessionStorage.getItem('za_player_id');
-  if (savedRoom && savedPlayer) {
-    socket.emit('rejoin_room', { roomCode: savedRoom, playerId: savedPlayer });
-  }
-});
-
-socket.on('disconnect', () => {
-  // Only show reconnect if we were in a game
-  if (state.roomCode) {
-    $('reconnect-overlay').classList.remove('hidden');
-  }
-});
-
-// FIX 11: Page Visibility API
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     if (!socket.connected) {
+      showReconnecting();
       socket.connect();
     }
   }
 });
 
-socket.on('room_created', ({ roomCode, playerId }) => {
+socket.on('disconnect', () => {
+  if (state.roomCode) {
+    sessionStorage.setItem('za_room_code', state.roomCode);
+    sessionStorage.setItem('za_player_id', state.myId);
+    showReconnecting();
+  }
+});
+
+socket.on('connect', () => {
+  const oldId = state.myId;
+  state.myId = socket.id;
+  const savedRoom = sessionStorage.getItem('za_room_code');
+  const savedPlayer = sessionStorage.getItem('za_player_id');
+  if (savedRoom && savedPlayer && savedPlayer !== socket.id) {
+    socket.emit('rejoin_room', { roomCode: savedRoom, playerId: savedPlayer });
+  } else {
+    hideReconnecting();
+  }
+});
+
+socket.on('rejoin_success', ({ roomCode, state: gameState, players }) => {
+  hideReconnecting();
+  state.roomCode = roomCode;
+  state.yourHand = gameState.yourHand;
+  state.tableCombo = gameState.tableCombo;
+  state.tableComboName = gameState.tableComboName;
+  state.players = gameState.players;
+  state.currentPlayerId = gameState.currentPlayerId;
+  state.turnOrder = gameState.turnOrder;
+  state.timerSeconds = gameState.timerSeconds || 30;
+  state.isObserving = gameState.isObserving || false;
+  state.selectedCards = [];
+  state.handOrder = [];
+  sessionStorage.setItem('za_room_code', roomCode);
+  sessionStorage.setItem('za_player_id', state.myId);
+  showScreen('game-screen');
+  renderGame();
+});
+
+socket.on('rejoin_failed', () => {
+  hideReconnecting();
+  sessionStorage.removeItem('za_room_code');
+  sessionStorage.removeItem('za_player_id');
+});
+
+// === SOCKET EVENTS ===
+socket.on('room_created', ({ roomCode }) => {
   state.roomCode = roomCode;
   state.isHost = true;
-  state.isObserver = false;
-  state.isFinished = false;
-  // FIX 11: Save to sessionStorage
   sessionStorage.setItem('za_room_code', roomCode);
-  sessionStorage.setItem('za_player_id', playerId || socket.id);
+  sessionStorage.setItem('za_player_id', state.myId);
   showScreen('lobby-screen');
   renderLobby();
 });
 
-socket.on('room_joined', ({ roomCode, playerId }) => {
+socket.on('room_joined', ({ roomCode }) => {
   state.roomCode = roomCode;
   state.isHost = false;
-  state.isObserver = false;
-  state.isFinished = false;
   sessionStorage.setItem('za_room_code', roomCode);
-  sessionStorage.setItem('za_player_id', playerId || socket.id);
+  sessionStorage.setItem('za_player_id', state.myId);
   showScreen('lobby-screen');
   renderLobby();
 });
@@ -1191,118 +987,112 @@ socket.on('room_updated', ({ players }) => {
   renderLobby();
 });
 
-// FIX 2: Room list
-socket.on('room_list', ({ rooms }) => {
-  renderRoomList(rooms);
-});
+// FIX 2: room list
+socket.on('room_list', (rooms) => { renderRoomList(rooms); });
 
-// FIX 2: Observer joined
+// FIX 2: observer mode
 socket.on('observer_joined', ({ roomCode }) => {
   state.roomCode = roomCode;
-  state.isObserver = true;
-  state.isFinished = false;
+  state.isObserverMode = true;
   showScreen('game-screen');
+  $('action-bar').style.display = 'none';
 });
 
-// FIX 2: Observer update
 socket.on('observer_update', (data) => {
   state.tableCombo = data.tableCombo;
   state.tableComboName = data.tableComboName;
   state.players = data.players;
   state.currentPlayerId = data.currentPlayerId;
+  state.timerSeconds = data.timerSeconds || 0;
   state.yourHand = [];
-  state.handOrder = [];
+  state.isObserverMode = true;
   renderGame();
+  $('action-bar').style.display = 'none';
+  // Show observer banner
+  document.querySelectorAll('.observer-banner').forEach(e => e.remove());
+  const b = document.createElement('div');
+  b.className = 'observer-banner';
+  b.textContent = 'Режим наблюдателя';
+  document.body.appendChild(b);
 });
 
-// FIX 2: Queued
-socket.on('queued', ({ roomCode, position }) => {
-  showToast(`В очереди: позиция ${position}`);
+socket.on('queued', ({ roomCode }) => {
+  showToast('Вы в очереди на следующий раунд');
 });
 
-socket.on('game_started', ({ yourHand, currentPlayerId, turnOrder, players }) => {
+socket.on('game_started', ({ yourHand, currentPlayerId, turnOrder, players, isFirstTurn, firstTurnPlayerId }) => {
   state.yourHand = yourHand;
-  state.handOrder = [...yourHand]; // FIX 3: Initialize hand order
   state.currentPlayerId = currentPlayerId;
   state.turnOrder = turnOrder;
   state.players = players;
   state.selectedCards = [];
   state.tableCombo = null;
   state.tableComboName = '';
-  state.isFinished = false;
-  state.isObserver = false;
-  state.autoPass = false;
-  $('autopass-btn').classList.remove('active');
-  $('autopass-banner').classList.add('hidden');
+  state.isObserving = false;
+  state.isObserverMode = false;
+  state.handOrder = [];
+  state.isFirstTurn = isFirstTurn || false;
+  state.firstTurnPlayerId = firstTurnPlayerId || null;
   $('game-log').innerHTML = '';
+  $('action-bar').style.display = 'flex';
   showScreen('game-screen');
   addLog('Игра началась!', true);
   renderGame();
+  // FIX 12: autopass check
+  checkAutopass();
 });
 
 socket.on('state_update', (data) => {
   state.yourHand = data.yourHand;
-  updateHandOrder(data.yourHand); // FIX 3
   state.tableCombo = data.tableCombo;
   state.tableComboName = data.tableComboName;
   state.players = data.players;
   state.currentPlayerId = data.currentPlayerId;
+  state.timerSeconds = data.timerSeconds || 0;
+  state.isObserving = data.isObserving || false;
   state.selectedCards = state.selectedCards.filter(c => state.yourHand.includes(c));
+  // Sync handOrder
+  if (state.handOrder.length > 0) {
+    state.handOrder = state.handOrder.filter(c => state.yourHand.includes(c));
+    const newCards = state.yourHand.filter(c => !state.handOrder.includes(c));
+    state.handOrder.push(...newCards);
+  }
+  // FIX 5: if player finished, show as observer
+  if (state.isObserving) {
+    $('action-bar').style.display = 'none';
+  }
   renderGame();
-
-  // FIX 12: Auto-pass
-  if (state.autoPass && state.currentPlayerId === state.myId && state.tableCombo && !state.isFinished) {
-    setTimeout(() => {
-      socket.emit('pass_turn');
-    }, 500);
-  }
+  checkAutopass();
 });
 
-// FIX 12: Handle your_turn for auto-pass
-socket.on('your_turn', () => {
-  if (state.autoPass && state.tableCombo && !state.isFinished) {
-    setTimeout(() => {
-      socket.emit('pass_turn');
-    }, 500);
-  }
+// FIX 6: timer tick
+socket.on('timer_tick', ({ secondsLeft }) => {
+  state.timerSeconds = secondsLeft;
+  renderTimer(secondsLeft);
 });
 
-socket.on('player_played', ({ playerId, nickname, comboName, comboCards, comboType }) => {
+socket.on('player_played', ({ playerId, nickname, comboName, comboType }) => {
   addLog(`${nickname}: ${comboName}`, comboType === 'za' || comboType === 'po' || comboType === 'vangog');
 });
 
-socket.on('player_passed', ({ playerId, nickname }) => {
-  addLog(`${nickname} пасует`);
-});
+socket.on('player_passed', ({ nickname }) => { addLog(`${nickname} пасует`); });
 
-socket.on('player_finished', ({ nickname, place }) => {
-  addLog(`${nickname} вышел (${place} место)!`, true);
-});
+socket.on('player_finished', ({ nickname, place }) => { addLog(`${nickname} вышел (${place} место)!`, true); });
 
-// FIX 5: Finished player becomes observer
-socket.on('you_are_observer', ({ message }) => {
-  state.isFinished = true;
-  renderGame();
-});
-
-socket.on('trick_won', ({ playerId, nickname }) => {
+socket.on('trick_won', ({ nickname }) => {
   addLog(`${nickname} забирает раунд!`, true);
   showTrickWon(nickname);
 });
 
-// FIX 6: Timer tick
-socket.on('timer_tick', ({ secondsLeft }) => {
-  updateTimer(secondsLeft);
-});
-
 socket.on('game_over', ({ standings }) => {
   state.standings = standings;
-  state.isFinished = false;
-  state.isObserver = false;
-  state.autoPass = false;
+  state.isObserverMode = false;
+  document.querySelectorAll('.observer-banner,.autopass-banner').forEach(e => e.remove());
   showScreen('end-screen');
   renderStandings();
   $('play-again-btn').style.display = state.isHost ? 'block' : 'none';
+  sessionStorage.removeItem('za_room_code');
+  sessionStorage.removeItem('za_player_id');
 });
 
 socket.on('back_to_lobby', ({ players }) => {
@@ -1310,52 +1100,28 @@ socket.on('back_to_lobby', ({ players }) => {
   state.tableCombo = null;
   state.tableComboName = '';
   state.yourHand = [];
-  state.handOrder = [];
   state.selectedCards = [];
-  state.isFinished = false;
-  state.isObserver = false;
-  state.autoPass = false;
-  $('autopass-btn').classList.remove('active');
-  $('autopass-banner').classList.add('hidden');
+  state.handOrder = [];
+  state.isObserving = false;
+  state.isObserverMode = false;
+  document.querySelectorAll('.observer-banner,.autopass-banner').forEach(e => e.remove());
   showScreen('lobby-screen');
   renderLobby();
 });
 
-// FIX 11: Rejoin success
-socket.on('rejoin_success', ({ roomCode, playerId, gameState, isFinished }) => {
-  state.roomCode = roomCode;
-  state.isFinished = isFinished || false;
-  state.isObserver = false;
-  sessionStorage.setItem('za_room_code', roomCode);
-  sessionStorage.setItem('za_player_id', playerId);
+socket.on('invalid_move', ({ reason }) => { showInvalidTooltip(reason); });
+socket.on('error', ({ message }) => { $('home-error').textContent = message; });
 
-  state.yourHand = gameState.yourHand;
-  state.handOrder = [...gameState.yourHand];
-  state.tableCombo = gameState.tableCombo;
-  state.tableComboName = gameState.tableComboName;
-  state.players = gameState.players;
-  state.currentPlayerId = gameState.currentPlayerId;
-  state.selectedCards = [];
-
-  const me = state.players.find(p => p.id === state.myId);
-  if (me) state.isHost = me.isHost;
-
-  showScreen('game-screen');
-  renderGame();
-});
-
-socket.on('rejoin_failed', () => {
-  sessionStorage.removeItem('za_room_code');
-  sessionStorage.removeItem('za_player_id');
-});
-
-socket.on('invalid_move', ({ reason }) => {
-  showInvalidTooltip(reason);
-});
-
-socket.on('error', ({ message }) => {
-  $('home-error').textContent = message;
-});
+// FIX 12: autopass logic
+function checkAutopass() {
+  if (state.autopass && state.currentPlayerId === state.myId && !state.isObserving && state.tableCombo) {
+    setTimeout(() => {
+      if (state.autopass && state.currentPlayerId === state.myId && state.tableCombo) {
+        socket.emit('pass_turn');
+      }
+    }, 500);
+  }
+}
 </script>
 </body>
 </html>
