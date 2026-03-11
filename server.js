@@ -157,6 +157,7 @@ function detectCombo(cardIds) {
   const jokers = cards.filter(isJoker);
   const normals = cards.filter(c => !isJoker(c));
   const jokerCount = jokers.length;
+  if (jokerCount > 2) return null;
   if (cards.length === 0) return null;
   if (cards.length === 1) {
     if (jokerCount === 1) return { comboType: COMBO_TYPES.SINGLE, rank: 14, cards, displayRank: 'JOK' };
@@ -175,7 +176,7 @@ function detectCombo(cardIds) {
   if (cards.length === 3) {
     const normalRanks = normals.map(getCardRank);
     const uniqueRanks = [...new Set(normalRanks)];
-    if (jokerCount <= 1 && uniqueRanks.length === 1 && normals.length + jokerCount === 3)
+    if (jokerCount <= 2 && uniqueRanks.length === 1 && normals.length + jokerCount === 3)
       return { comboType: COMBO_TYPES.ZA, rank: getCardValue(normals[0]), cards, displayRank: normalRanks[0] };
     return null;
   }
@@ -185,6 +186,8 @@ function detectCombo(cardIds) {
     if (jokerCount === 0 && uniqueRanks.length === 1)
       return { comboType: COMBO_TYPES.PO, rank: getCardValue(normals[0]), cards, displayRank: normalRanks[0] };
     if (jokerCount === 1 && uniqueRanks.length === 1 && normals.length === 3)
+      return { comboType: COMBO_TYPES.PO, rank: getCardValue(normals[0]), cards, displayRank: normalRanks[0] };
+    if (jokerCount === 2 && uniqueRanks.length === 1 && normals.length === 2)
       return { comboType: COMBO_TYPES.PO, rank: getCardValue(normals[0]), cards, displayRank: normalRanks[0] };
     const sr = detectStraight(normals, jokerCount);
     if (sr) return { comboType: COMBO_TYPES.STRAIGHT, rank: sr.topValue, cards, length: cards.length, displayRank: sr.display };
@@ -248,11 +251,15 @@ function validatePlay(selectedCards, tableCombo) {
   const combo = detectCombo(selectedCards);
   if (!combo) return { valid: false, error: 'Неверная комбинация карт' };
   if (!tableCombo) return { valid: true, ...combo };
-  if (combo.comboType === COMBO_TYPES.VANGOG) return { valid: false, error: 'ВанГог можно играть только первым ходом в раунде' };
+  // VanGog on table → only higher VanGog can beat it (not ZA, not PO)
   if (tableCombo.comboType === COMBO_TYPES.VANGOG) {
     if (combo.comboType !== COMBO_TYPES.VANGOG) return { valid: false, error: 'ВанГог можно побить только старшим ВанГогом' };
     if (combo.rank <= tableCombo.rank) return { valid: false, error: 'ВанГог должен быть старше' };
     return { valid: true, ...combo };
+  }
+  // VanGog cannot beat non-VanGog combos (only playable on empty table)
+  if (combo.comboType === COMBO_TYPES.VANGOG) {
+    return { valid: false, error: 'ВанГог можно играть только в начале раунда' };
   }
   if (combo.comboType === COMBO_TYPES.PO) {
     if (tableCombo.comboType === COMBO_TYPES.PO && combo.rank <= tableCombo.rank) return { valid: false, error: 'ПО должно быть старше' };

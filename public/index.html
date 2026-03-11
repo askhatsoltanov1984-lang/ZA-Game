@@ -297,9 +297,10 @@ input::placeholder { color: #5a8a6a; }
 
 /* Game log */
 .game-log {
-  position: absolute; bottom: 90px; right: 10px; width: 220px; max-height: 80px;
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+  width: 260px; max-height: 70px;
   overflow-y: auto; z-index: 10; display: flex; flex-direction: column; gap: 2px;
-  font-size: 11px; pointer-events: none;
+  font-size: 11px; pointer-events: none; text-align: center;
 }
 .log-entry { padding: 3px 8px; background: rgba(0,0,0,0.4); border-radius: 4px; color: #aaa; }
 .log-entry.highlight { color: #f0c040; }
@@ -329,7 +330,7 @@ input::placeholder { color: #5a8a6a; }
   .card { width: 42px; height: 62px; }
   .card .rank { font-size: 14px; }
   .card .suit { font-size: 12px; }
-  .game-log { display: none; }
+  .game-log { width: 200px; max-height: 60px; font-size: 10px; }
   .opponent { min-width: 56px; padding: 6px 8px; }
   .combo-label { font-size: 16px; }
   .turn-status-center { font-size: 18px; }
