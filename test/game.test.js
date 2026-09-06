@@ -67,7 +67,6 @@ test('rejoin requires private token; refresh retains hand and host', async t => 
   const attacker = await connect();
   await emit(attacker,'rejoin_room',{roomCode,playerId:host.id},'rejoin_failed');
   await emit(attacker,'rejoin_room',{...saved,token:'0'.repeat(64)},'rejoin_failed');
-  await emit(attacker,'rejoin_room',saved,'rejoin_failed'); // second active tab refused
   const paused = stateWhere(players[1], data => data.paused);
   host.disconnect();
   assert.equal((await paused).paused,true);
@@ -176,4 +175,23 @@ test('fully disconnected rooms leave public list but remain in durable storage',
   const app=await party(t), code=app.roomCode;app.players.forEach(s=>s.disconnect());await delay(40);
   const spectator=await app.connect();const list=await emit(spectator,'get_room_list',{},'room_list');
   assert.equal(list.some(r=>r.code===code),false);assert.ok(loadRooms(app.file).has(code));
+});
+
+test('a full observer destination cannot remove the player from the current lobby',async t=>{
+  const app=await run(t),host=await app.connect(),other=await app.connect();
+  const own=await emit(host,'create_room',{nickname:'Ведущий'},'room_created');
+  const target=await emit(other,'create_room',{nickname:'Другой'},'room_created');
+  for(let i=0;i<32;i++){const observer=await app.connect();await emit(observer,'join_as_observer',{roomCode:target.roomCode,nickname:'Зритель '+i},'observer_joined');}
+  await emit(host,'join_as_observer',{roomCode:target.roomCode,nickname:'Ведущий'},'error');
+  assert.ok(loadRooms(app.file).get(own.roomCode).players.some(p=>p.id===host.id));
+});
+
+test('valid mobile handover replaces an old transport without duplicating the player',async t=>{
+  const app=await party(t),old=app.players[0],saved={...old.session},oldId=old.id,hand=[...old.state.yourHand];
+  const replacement=await app.connect();const revoked=event(old,'session_replaced');const disconnected=event(old,'disconnect');
+  const restored=await emit(replacement,'rejoin_room',saved,'rejoin_success');await revoked;await disconnected;
+  assert.deepEqual(restored.state.yourHand,hand);assert.equal(restored.players.length,3);
+  assert.equal(restored.players.some(p=>p.id===oldId),false);
+  assert.equal(restored.players.find(p=>p.id===replacement.id).isHost,true);
+  assert.equal(restored.state.paused,false);
 });

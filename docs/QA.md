@@ -4,11 +4,11 @@ The stabilization release is deployed; a full production browser game passed. Ph
 
 ## Automated server checks
 
-Node.js 24.14.0 on macOS 26.6.2. `npm test`: 14 passing tests including two nested complete-game cases.
+Node.js 24.14.0 on macOS 26.6.2. `npm test`: 16 passing tests including two nested complete-game cases.
 
 - Room creation/join, 54 unique dealt cards, private hands, host authority and invalid phase transitions.
 - Null, wrong-type, missing, duplicate and invalid-card payloads rejected without state changes or process termination.
-- Private reconnect token required; public identifiers and wrong tokens rejected; an active copied tab cannot take over; own hand and host status restored.
+- Private reconnect token required; public identifiers and wrong tokens rejected; a valid private session can replace a stale transport; the old connection is disconnected; own hand and host status restored.
 - Confirmed move survives SIGKILL and restart; all players return to the saved game.
 - A stale revision cannot execute a repeated move.
 - Complete 3-player and 8-player games, standings, and return to lobby.
@@ -20,6 +20,8 @@ Combo recognition and ranking code is preserved from the baseline. Full games ex
 
 - Previous snapshot is recoverable; an oversized snapshot is rejected without modifying the current durable file.
 - Fully disconnected rooms disappear from the public list but remain in durable storage for legitimate return.
+
+- A full observer destination rejects entry without removing the player from their existing lobby.
 
 ## Browser checks
 
