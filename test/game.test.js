@@ -152,3 +152,18 @@ test('timer pass uses the same completed-author rule',async t=>{
   await delay(30);assert.ok(returning[2].state.tableCombo);assert.equal(returning[2].state.currentPlayerId,returning[2].id);
   await emit(returning[2],'pass_turn',{revision:returning[2].state.revision},'state_update');assert.equal(returning[2].state.tableCombo,null);
 });
+
+test('rolling previous snapshot stays recoverable and oversized writes leave current intact',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'za-backup-'));const file=path.join(dir,'rooms.json');
+  try{
+    saveRooms(file,new Map());const initial=fs.readFileSync(file,'utf8');
+    saveRooms(file,new Map());assert.equal(fs.readFileSync(file+'.previous','utf8'),initial);assert.equal(loadRooms(file+'.previous').size,0);
+    assert.throws(()=>saveRooms(file,new Map([['oversize',{hands:new Map(),huge:'x'.repeat(33*1024*1024)}]])),/size limit/);
+    assert.equal(fs.readFileSync(file,'utf8'),initial);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('fully disconnected rooms leave public list but remain in durable storage',async t=>{
+  const app=await party(t), code=app.roomCode;app.players.forEach(s=>s.disconnect());await delay(40);
+  const spectator=await app.connect();const list=await emit(spectator,'get_room_list',{},'room_list');
+  assert.equal(list.some(r=>r.code===code),false);assert.ok(loadRooms(app.file).has(code));
+});

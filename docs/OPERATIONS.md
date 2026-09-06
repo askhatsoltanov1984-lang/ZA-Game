@@ -1,14 +1,14 @@
 # Deployment and recovery
 
-## Required storage (not yet provisioned)
+## Production storage
 
 Run one replica of ZA-Game with Node.js 24. The Dockerfile selects the supported runtime. Attach a Railway volume to `/data`; set `STATE_FILE=/data/rooms.json`. No database service is necessary at this scale. Never use the ephemeral container filesystem as production storage. Healthcheck: `/health`.
 
-Railway documentation checked September 5, 2026 lists volume storage at **$0.15 per GB per month of usage**, in addition to compute/network and the account's plan. A 0.5 GB allocation is sufficient for this bounded small-game server; 0.5 GB actually used would cost about $0.075/month for storage, excluding backups. The exact current plan and available minimum allocation must be checked in the dashboard before creation. No plan upgrade is authorized or needed by this code.
+Railway documentation checked September 5, 2026 lists volume storage at **$0.15 per GB per month of usage**, in addition to compute/network and the account's plan. Actual snapshot data is small; the fixed platform capacity is not a prepaid amount. No plan upgrade is authorized or needed by this code.
 
 Sources: https://docs.railway.com/pricing/plans and https://docs.railway.com/volumes .
 
-The running production service currently has a single replica. The architecture view shows the application only; a persistent volume must be attached before deploying this branch. The new server refuses Railway startup unless STATE_FILE resolves inside RAILWAY_VOLUME_MOUNT_PATH. Do not merge into the production-linked branch before volume and variables are ready.
+The running production service currently has a single replica. A volume named za-game-volume is attached at /data and STATE_FILE is set to /data/rooms.json. The Hobby plan supplies 5 GB maximum capacity and bills only stored data, not the unused capacity. The plan was not changed. Application snapshots are limited to 32 MiB each; current, previous and temporary copies together stay below 128 MiB of file data, well below the agreed $0.15/month storage budget at the documented usage rate. This is an application data limit, not a Railway account-wide billing cap. The new server refuses Railway startup unless STATE_FILE resolves inside RAILWAY_VOLUME_MOUNT_PATH. Do not merge into the production-linked branch before volume and variables are ready.
 
 ## State guarantees and limits
 
@@ -28,8 +28,12 @@ Snapshots include private hands: restrict backup access just as for the live vol
 
 ## Backup and rollback
 
-Enable Railway volume backups and choose retention appropriate to the account; backup pricing and schedule must be reviewed in the dashboard before enabling. A read-only file copy of the atomically replaced snapshot is also a consistent backup. Store it privately with restrictive permissions; never commit snapshots.
+The live dashboard restricts Railway managed backups to Pro. No upgrade was performed. Instead the server keeps one fsynced previous snapshot at /data/rooms.json.previous, with owner-only permissions, replacing it on every commit. This protects against corruption of the current file; it does not protect against deletion or loss of the volume. Off-volume automated backup remains unconfigured. A private off-volume copy or Pro managed backups is a separate operational follow-up. The CLI file download route requires a registered Railway SSH key, which was not added.
 
-For application rollback, select a prior *storage-compatible* deployment and preserve the mounted volume. For corrupt state, stop the service, preserve the corrupt file for diagnosis, restore a validated version-2 backup, and restart. Restoring an older backup loses actions newer than that backup; communicate that before recovery. The original commit does not understand snapshots and must not be represented as preserving active new-version games.
+For application rollback, select a prior *storage-compatible* deployment and preserve the mounted volume. For corrupt state, stop the service, preserve the corrupt file for diagnosis, restore a validated version-2 backup (including rooms.json.previous if valid), and restart. Restoring an older backup loses actions newer than that backup; communicate that before recovery. The original commit does not understand snapshots and must not be represented as preserving active new-version games.
 
 Original production baseline: `c90e44b11c83c7163d658c462d2c3a4fbf7699d9`.
+
+## Deployment record
+
+The first stabilization release was deployed as merge commit 19ba8aadee582ff7f3e9d9c0ab30d5fdf082ae09. Docker build and /health passed. Production HTML matched reviewed source. A 69-turn production browser game passed, including in-game refresh/rejoin, results refresh, rematch and normal room departure. No crash tests were run on production. The follow-up PR adds bounded previous snapshots and hides fully disconnected saved rooms from the public room list without deleting them.

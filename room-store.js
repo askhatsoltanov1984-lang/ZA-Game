@@ -30,11 +30,21 @@ function saveRooms(file, rooms) {
     return { ...saved, hands: [...room.hands] };
   });
   const payload = JSON.stringify({ version: 2, checksum: crypto.createHash('sha256').update(JSON.stringify(snapshots)).digest('hex'), rooms: snapshots });
+  // Bound disk use, including current, previous and temporary snapshots.
+  if (Buffer.byteLength(payload) > 32 * 1024 * 1024) throw new Error('Snapshot size limit exceeded');
   const dir = path.dirname(file);
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   const temporary = `${file}.tmp`;
   const fd = fs.openSync(temporary, 'w', 0o600);
   try { fs.writeFileSync(fd, payload); fs.fsyncSync(fd); } finally { fs.closeSync(fd); }
+  if (fs.existsSync(file)) {
+    const previousTemporary = `${file}.previous.tmp`;
+    fs.copyFileSync(file, previousTemporary);
+    fs.chmodSync(previousTemporary, 0o600);
+    const previous = fs.openSync(previousTemporary, 'r');
+    try { fs.fsyncSync(previous); } finally { fs.closeSync(previous); }
+    fs.renameSync(previousTemporary, `${file}.previous`);
+  }
   fs.renameSync(temporary, file);
   const directory = fs.openSync(dir, 'r');
   try { fs.fsyncSync(directory); } finally { fs.closeSync(directory); }
