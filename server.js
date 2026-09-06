@@ -177,6 +177,7 @@ function getRoomList() {
   const list = [];
   for (const [, room] of rooms) {
     const activePlayers = room.players.filter(p => !p.disconnected);
+    if (activePlayers.length === 0) continue; // Saved rooms remain rejoinable by their owners.
     let type;
     if (room.status === 'lobby') {
       type = activePlayers.length >= room.maxPlayers ? 'full' : 'waiting';
