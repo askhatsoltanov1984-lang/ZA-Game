@@ -1,46 +1,30 @@
-# ZA — Карточная игра
+# ZA card game
 
-Реальтаймовая многопользовательская карточная игра на 3-8 игроков.
+Multiplayer Russian-language card game for 3–8 players. Existing combo rules are retained; reconnects use private session secrets and accepted actions are stored durably.
 
-## Локальная разработка
+## Local run
 
-```bash
-npm install
-npm run dev
+Use Node.js 24 (`nvm use`).
+
+```sh
+npm ci
+npm run check
+npm test
+npm start
 ```
 
-Откройте http://localhost:3000
+Open http://localhost:3000 in independent browser sessions. Local data is stored in `data/rooms.json` (ignored by Git). Set `STATE_FILE` to choose another durable directory.
 
-## Как играть
+## Browser QA
 
-1. Создайте комнату и поделитесь ссылкой с друзьями
-2. Когда собралось 3+ игрока, хост нажимает "Начать игру"
-3. Колода из 54 карт раздаётся поровну
-4. Первым ходит игрок с наименьшей картой
-5. Побеждает тот, кто первым избавится от всех карт
+```sh
+npx playwright install chromium firefox webkit
+PORT=3187 STATE_FILE=../browser-rooms.json npm start
+# In another terminal:
+node test/browser.cjs
+node test/browser-game.cjs
+```
 
-### Комбинации
+`browser.cjs` uses isolated visual stress fixtures after establishing a real room. `browser-game.cjs` plays an actual game through UI actions in three independent browser contexts. `QA_OUTPUT` customizes screenshot output for the visual suite. Never run these mutation-based suites against production.
 
-| Комбинация | Описание |
-|---|---|
-| Одиночная | Одна карта, бьётся старшей |
-| Пара | Две одинаковых, бьётся старшей парой |
-| Стрит | 4+ последовательных карт (без 2, 3, Джокеров) |
-| ЗА | Три одинаковых — бьёт одиночные, пары, стриты |
-| ПО | Четыре одинаковых — бьёт всё кроме ВанГога |
-| ВанГог | Три пары подряд — только первым ходом, бьётся только старшим ВанГогом |
-
-### Джокеры
-
-- Джокер + пара = ЗА
-- Джокер заполняет 1 пробел в стрите
-- Джокер один = старшая одиночная
-- 2 Джокера = старшая пара
-
-## Деплой на Railway
-
-1. Запушьте код на GitHub
-2. Откройте [railway.app](https://railway.app)
-3. New Project → Deploy from GitHub → выберите репозиторий
-4. Railway автоматически определит Node.js и установит PORT
-5. Поделитесь ссылкой: `https://your-app.railway.app/?room=ZA-XXXX`
+See [QA](docs/QA.md) and [deployment / backup / rollback](docs/OPERATIONS.md).
