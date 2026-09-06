@@ -7,6 +7,14 @@ const path = require('node:path');
 const { io } = require('socket.io-client');
 const { saveRooms, loadRooms } = require('../room-store');
 const delay = ms => new Promise(r => setTimeout(r, ms));
+function stateWhere(socket, predicate) {
+  if (socket.state && predicate(socket.state)) return Promise.resolve(socket.state);
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { socket.off('state_update', handler); reject(new Error('Timed out waiting for authoritative state')); }, 5000);
+    function handler(data) { if (predicate(data)) { clearTimeout(timer); socket.off('state_update', handler); resolve(data); } }
+    socket.on('state_update', handler);
+  });
+}
 function event(socket, name) { return new Promise((resolve, reject) => { const timer = setTimeout(() => { socket.off(name, handler); reject(new Error('Timeout: '+name)); }, 4000); function handler(data) { clearTimeout(timer); resolve(data); } socket.once(name, handler); }); }
 async function run(t, fixture) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'za-test-'));
@@ -30,7 +38,8 @@ async function party(t, count = 3) {
   for (let i=0; i<count; i++) players.push(await app.connect());
   const {roomCode} = await emit(players[0], 'create_room', {nickname:'Игрок 0',maxPlayers:8}, 'room_created');
   for (let i=1; i<count; i++) await emit(players[i], 'join_room', {roomCode,nickname:'Игрок '+i}, 'room_joined');
-  await emit(players[0], 'start_game', {}, 'game_started'); await delay(30);
+  await emit(players[0], 'start_game', {}, 'game_started');
+  await Promise.all(players.map(s => stateWhere(s, d => d.revision > 0 && d.yourHand.length > 0)));
   return {...app, players, roomCode};
 }
 test('validated creation, distinct hands, host and phase authority', async t => {
@@ -58,9 +67,9 @@ test('rejoin requires private token; refresh retains hand and host', async t => 
   const attacker = await connect();
   await emit(attacker,'rejoin_room',{roomCode,playerId:host.id},'rejoin_failed');
   await emit(attacker,'rejoin_room',{...saved,token:'0'.repeat(64)},'rejoin_failed');
-  await emit(attacker,'rejoin_room',saved,'rejoin_failed'); // second active tab refused
-  host.disconnect(); await delay(30);
-  assert.equal(players[1].state.paused,true);
+  const paused = stateWhere(players[1], data => data.paused);
+  host.disconnect();
+  assert.equal((await paused).paused,true);
   const back = await connect(); const data = await emit(back,'rejoin_room',saved,'rejoin_success');
   assert.deepEqual(data.state.yourHand,hand);
   assert.equal(data.players.find(p=>p.id===back.id).isHost,true);
@@ -166,4 +175,23 @@ test('fully disconnected rooms leave public list but remain in durable storage',
   const app=await party(t), code=app.roomCode;app.players.forEach(s=>s.disconnect());await delay(40);
   const spectator=await app.connect();const list=await emit(spectator,'get_room_list',{},'room_list');
   assert.equal(list.some(r=>r.code===code),false);assert.ok(loadRooms(app.file).has(code));
+});
+
+test('a full observer destination cannot remove the player from the current lobby',async t=>{
+  const app=await run(t),host=await app.connect(),other=await app.connect();
+  const own=await emit(host,'create_room',{nickname:'Ведущий'},'room_created');
+  const target=await emit(other,'create_room',{nickname:'Другой'},'room_created');
+  for(let i=0;i<32;i++){const observer=await app.connect();await emit(observer,'join_as_observer',{roomCode:target.roomCode,nickname:'Зритель '+i},'observer_joined');}
+  await emit(host,'join_as_observer',{roomCode:target.roomCode,nickname:'Ведущий'},'error');
+  assert.ok(loadRooms(app.file).get(own.roomCode).players.some(p=>p.id===host.id));
+});
+
+test('valid mobile handover replaces an old transport without duplicating the player',async t=>{
+  const app=await party(t),old=app.players[0],saved={...old.session},oldId=old.id,hand=[...old.state.yourHand];
+  const replacement=await app.connect();const revoked=event(old,'session_replaced');const disconnected=event(old,'disconnect');
+  const restored=await emit(replacement,'rejoin_room',saved,'rejoin_success');await revoked;await disconnected;
+  assert.deepEqual(restored.state.yourHand,hand);assert.equal(restored.players.length,3);
+  assert.equal(restored.players.some(p=>p.id===oldId),false);
+  assert.equal(restored.players.find(p=>p.id===replacement.id).isHost,true);
+  assert.equal(restored.state.paused,false);
 });

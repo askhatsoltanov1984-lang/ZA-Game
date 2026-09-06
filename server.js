@@ -570,7 +570,7 @@ io.on('connection', (socket) => {
   const originalOn = socket.on.bind(socket);
   let rateStart = Date.now(), rateCount = 0;
   socket.on = (event, handler) => originalOn(event, (input, ack) => {
-    if (event === 'disconnect') { transaction(() => handler(input)); return; }
+    if (event === 'disconnect') { if (socket.data.replaced) handler(input); else transaction(() => handler(input)); return; }
     if (!storageHealthy) { originalEmit('storage_error', { message: 'Хранилище недоступно' }); return; }
     if (Date.now() - rateStart > 10000) { rateStart = Date.now(); rateCount = 0; }
     if (++rateCount > 60) { originalEmit('error', { message: 'Слишком много действий. Подождите.' }); return; }
@@ -607,8 +607,8 @@ io.on('connection', (socket) => {
   socket.on('create_room', ({ nickname, maxPlayers }) => {
     if (!nickname || nickname.trim().length === 0) { socket.emit('error', { message: 'Введите никнейм' }); return; }
     if (findRoomByPlayer(socket.id)?.status === 'playing') { socket.emit('error', { message: 'Сначала завершите текущую партию' }); return; }
-    leaveCurrentRoom(socket);
     if (rooms.size >= 200) { socket.emit('error', { message: 'Все столы заняты. Попробуйте позже.' }); return; }
+    leaveCurrentRoom(socket);
     const room = createRoom(socket.id, nickname.trim(), maxPlayers || 8);
     currentRoomCode = room.code;
     socket.join(room.code);
@@ -643,9 +643,9 @@ io.on('connection', (socket) => {
     const room = rooms.get(code);
     if (!room) { socket.emit('error', { message: 'Комната не найдена' }); return; }
     if (findRoomByPlayer(socket.id)?.status === 'playing') { socket.emit('error', { message: 'Сначала завершите текущую партию' }); return; }
+    if (room.observers.length >= 32 && !room.observers.some(o => o.id === socket.id)) { socket.emit('error', { message: 'Слишком много наблюдателей' }); return; }
     leaveCurrentRoom(socket);
     for (const [, r] of rooms) r.observers = r.observers.filter(o => o.id !== socket.id);
-    if (room.observers.length >= 32) { socket.emit('error', { message: 'Слишком много наблюдателей' }); return; }
     room.observers.push({ id: socket.id, nickname: (nickname || 'Observer').trim() });
     currentRoomCode = room.code;
     socket.join(room.code);
@@ -670,12 +670,17 @@ io.on('connection', (socket) => {
     if (!room) { socket.emit('rejoin_failed', { reason: 'Комната не найдена' }); return; }
     const player = room.players.find(p => p.id === playerId) || room.players.find(p => validSession(p, token));
     if (!validSession(player, token)) { socket.emit('rejoin_failed', { reason: 'Сессия недействительна' }); return; }
-    if (!player.disconnected && player.id !== socket.id) { socket.emit('rejoin_failed', { reason: 'Это место уже открыто в другой вкладке' }); return; }
     if (findRoomByPlayer(socket.id) && player.id !== socket.id) { socket.emit('rejoin_failed', { reason: 'Сначала выйдите из текущей комнаты' }); return; }
     if (room.disconnectTimers.has(playerId)) {
       clearTimeout(room.disconnectTimers.get(playerId));
       room.disconnectTimers.delete(playerId);
     }
+    const oldSocket = player.id !== socket.id ? io.sockets.sockets.get(player.id) : null;
+    if (oldSocket) pending.push(() => {
+      oldSocket.data.replaced = true;
+      oldSocket.emit('session_replaced', {});
+      oldSocket.disconnect(true);
+    });
     const oldId = player.id;
     player.id = socket.id;
     player.disconnected = false;

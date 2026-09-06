@@ -541,6 +541,12 @@ socket.on('session', ({ roomCode, playerId, token }) => {
   state.roomCode = roomCode;
   hideReconnecting();
 });
+socket.on('session_replaced', () => {
+  state.roomCode = null; state.autopass = false;
+  ['za_room_code','za_player_id','za_session_token'].forEach(k => sessionStorage.removeItem(k));
+  socket.disconnect(); hideReconnecting(); showScreen('home-screen');
+  $('home-error').textContent = 'Партия открыта в другой вкладке. Для новой игры обновите страницу.';
+});
 socket.on('storage_error', ({ message }) => { state.paused = true; updatePlayButton(); showReconnecting(); reconnectOverlay.textContent = message; });
 
 
