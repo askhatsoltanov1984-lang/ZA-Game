@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const { loadRooms, saveRooms } = require('./room-store');
 
 const app = express();
 const server = http.createServer(app);
@@ -62,7 +63,10 @@ function sortCards(cards) {
 
 // === ROOM MANAGER ===
 
-const rooms = new Map();
+const stateFile = process.env.STATE_FILE || path.join(__dirname, 'data', 'rooms.json');
+const rooms = loadRooms(stateFile);
+function persistRooms() { saveRooms(stateFile, rooms); }
+function isPaused(room) { return room.status === 'playing' && room.players.some(p => p.disconnected); }
 
 function generateRoomCode() {
   let code;
@@ -118,7 +122,9 @@ setInterval(() => {
     const inactiveTimeout = now - room.lastActivity > 2 * 60 * 60 * 1000;
     if (finishedTimeout || inactiveTimeout) {
       clearTurnTimer(room);
+      for (const timer of room.disconnectTimers.values()) clearTimeout(timer);
       rooms.delete(code);
+      persistRooms();
     }
   }
 }, 60 * 1000);
@@ -306,6 +312,7 @@ function clearTurnTimer(room) {
 
 function startTurnTimer(room) {
   clearTurnTimer(room);
+  if (isPaused(room) || room.status !== 'playing') return;
   room.turnSecondsLeft = TURN_TIMER_SECONDS;
   room.turnTimer = setInterval(() => {
     room.turnSecondsLeft--;
@@ -313,9 +320,19 @@ function startTurnTimer(room) {
     if (room.turnSecondsLeft <= 0) {
       clearTurnTimer(room);
       const currentId = getCurrentPlayerId(room);
-      if (currentId && room.status === 'playing') autoPass(room, currentId);
+      if (currentId && room.status === 'playing') { autoPass(room, currentId); persistRooms(); }
     }
   }, 1000);
+}
+
+function nextTrickLeader(room, activePlayers) {
+  if (activePlayers.includes(room.lastPlayerId)) return room.lastPlayerId;
+  const lastIndex = room.turnOrder.indexOf(room.lastPlayerId);
+  for (let offset = 1; offset <= room.turnOrder.length; offset++) {
+    const id = room.turnOrder[(lastIndex + offset) % room.turnOrder.length];
+    if (activePlayers.includes(id)) return id;
+  }
+  return activePlayers[0];
 }
 
 function autoPass(room, playerId) {
@@ -325,8 +342,8 @@ function autoPass(room, playerId) {
   room.lastActivity = Date.now();
   io.to(room.code).emit('player_passed', { playerId, nickname: player ? player.nickname : 'Unknown' });
   const activePlayers = getActivePlayersInTurnOrder(room);
-  if (room.passCount >= activePlayers.length - 1) {
-    let trickWinnerId = (room.lastPlayerId && activePlayers.includes(room.lastPlayerId)) ? room.lastPlayerId : activePlayers[0];
+  if (room.passCount >= activePlayers.length - (activePlayers.includes(room.lastPlayerId) ? 1 : 0)) {
+    const trickWinnerId = nextTrickLeader(room, activePlayers);
     const winner = room.players.find(p => p.id === trickWinnerId);
     io.to(room.code).emit('trick_won', { playerId: trickWinnerId, nickname: winner ? winner.nickname : 'Unknown' });
     room.wonWithUnbeatenCard = true;
@@ -400,6 +417,7 @@ function getActivePlayersInTurnOrder(room) {
 }
 
 function getCurrentPlayerId(room) {
+  if (isPaused(room)) return room.turnOrder[room.turnIndex] || null;
   const active = getActivePlayersInTurnOrder(room);
   if (active.length === 0) return null;
   for (let i = 0; i < room.turnOrder.length; i++) {
@@ -438,6 +456,7 @@ function buildStateUpdate(room, forPlayerId) {
     turnOrder: room.turnOrder,
     timerSeconds: room.turnSecondsLeft,
     isObserving: room.finishedPlayers.includes(forPlayerId),
+    paused: isPaused(room),
   };
 }
 
@@ -450,6 +469,7 @@ function buildObserverState(room) {
     turnOrder: room.turnOrder,
     timerSeconds: room.turnSecondsLeft,
     isObserver: true,
+    paused: isPaused(room),
   };
 }
 
@@ -483,10 +503,45 @@ function checkGameEnd(room) {
   return null;
 }
 
+// Pause the party while a participant reconnects. If everyone is away, keep
+// the saved party until normal room expiry instead of discarding all hands.
+function holdDisconnectedPlayer(room, playerId) {
+  if (room.disconnectTimers.has(playerId)) return;
+  const timer = setTimeout(() => {
+    room.disconnectTimers.delete(playerId);
+    const player = room.players.find(p => p.id === playerId);
+    if (!player || !player.disconnected || room.players.every(p => p.disconnected)) return;
+    room.players = room.players.filter(p => p.id !== playerId);
+    if (!room.players.some(p => p.isHost) && room.players.length) room.players[0].isHost = true;
+    const standings = room.status === 'playing' ? checkGameEnd(room) : null;
+    if (standings) io.to(room.code).emit('game_over', { standings });
+    io.to(room.code).emit('room_updated', { players: getPlayerInfo(room) });
+    sendStateToAll(room);
+    startTurnTimer(room);
+    persistRooms();
+  }, DISCONNECT_HOLD_MS);
+  room.disconnectTimers.set(playerId, timer);
+}
+
 // === SOCKET HANDLERS ===
 
 io.on('connection', (socket) => {
   let currentRoomCode = null;
+  // Persist completed application events. Reconnecting clients use the existing
+  // protocol; the last returning participant resumes the saved turn.
+  const originalOn = socket.on.bind(socket);
+  socket.on = (event, handler) => originalOn(event, (...args) => {
+    handler(...args);
+    if (event === 'get_room_list' || event === 'disconnect') return;
+    const room = findRoomByPlayer(socket.id);
+    if (room) {
+      for (const p of room.players) if (p.disconnected) holdDisconnectedPlayer(room, p.id);
+      if (room.status === 'playing' && !room.turnTimer) startTurnTimer(room);
+      if (room.status === 'playing') sendStateToAll(room);
+      else io.to(room.code).emit('room_updated', { players: getPlayerInfo(room) });
+    }
+    persistRooms();
+  });
   socket.emit('room_list', getRoomList());
 
   socket.on('get_room_list', () => { socket.emit('room_list', getRoomList()); });
@@ -613,7 +668,7 @@ io.on('connection', (socket) => {
 
   socket.on('play_cards', ({ cardIds }) => {
     const room = findRoomByPlayer(socket.id);
-    if (!room || room.status !== 'playing') return;
+    if (!room || room.status !== 'playing' || isPaused(room)) return;
     const currentId = getCurrentPlayerId(room);
     if (socket.id !== currentId) { socket.emit('invalid_move', { reason: 'Сейчас не ваш ход' }); return; }
     const hand = room.hands.get(socket.id);
@@ -652,7 +707,7 @@ io.on('connection', (socket) => {
 
   socket.on('pass_turn', () => {
     const room = findRoomByPlayer(socket.id);
-    if (!room || room.status !== 'playing') return;
+    if (!room || room.status !== 'playing' || isPaused(room)) return;
     const currentId = getCurrentPlayerId(room);
     if (socket.id !== currentId) { socket.emit('invalid_move', { reason: 'Сейчас не ваш ход' }); return; }
     if (!room.tableCombo) { socket.emit('invalid_move', { reason: 'Вы должны сделать ход (новый раунд)' }); return; }
@@ -661,16 +716,8 @@ io.on('connection', (socket) => {
     room.lastActivity = Date.now();
     io.to(room.code).emit('player_passed', { playerId: socket.id, nickname: player.nickname });
     const activePlayers = getActivePlayersInTurnOrder(room);
-    if (room.passCount >= activePlayers.length - 1) {
-      let trickWinnerId = (room.lastPlayerId && activePlayers.includes(room.lastPlayerId)) ? room.lastPlayerId : null;
-      if (!trickWinnerId) {
-        for (let i = 1; i <= room.turnOrder.length; i++) {
-          const idx = (room.turnIndex - i + room.turnOrder.length * 10) % room.turnOrder.length;
-          const id = room.turnOrder[idx];
-          if (activePlayers.includes(id) && id !== socket.id) { trickWinnerId = id; break; }
-        }
-        if (!trickWinnerId) trickWinnerId = activePlayers[0];
-      }
+    if (room.passCount >= activePlayers.length - (activePlayers.includes(room.lastPlayerId) ? 1 : 0)) {
+      const trickWinnerId = nextTrickLeader(room, activePlayers);
       const winner = room.players.find(p => p.id === trickWinnerId);
       io.to(room.code).emit('trick_won', { playerId: trickWinnerId, nickname: winner ? winner.nickname : 'Unknown' });
       room.wonWithUnbeatenCard = true;
@@ -735,46 +782,18 @@ io.on('connection', (socket) => {
       }
       return;
     }
-    if (room.status === 'playing') {
-      const player = room.players.find(p => p.id === socket.id);
-      if (player) {
-        player.disconnected = true;
-        const currentId = getCurrentPlayerId(room);
-        if (currentId === socket.id) {
-          if (room.tableCombo) {
-            room.passCount++;
-            io.to(room.code).emit('player_passed', { playerId: socket.id, nickname: player.nickname });
-            const ap = getActivePlayersInTurnOrder(room);
-            if (room.passCount >= ap.length - 1 && ap.length > 0) {
-              let twi = (room.lastPlayerId && ap.includes(room.lastPlayerId)) ? room.lastPlayerId : ap[0];
-              const w = room.players.find(p => p.id === twi);
-              io.to(room.code).emit('trick_won', { playerId: twi, nickname: w ? w.nickname : 'Unknown' });
-              room.wonWithUnbeatenCard = true;
-              room.tableCombo = null;
-              room.passCount = 0;
-              const wi = room.turnOrder.indexOf(twi);
-              if (wi !== -1) room.turnIndex = wi;
-              if (room.finishedPlayers.includes(twi)) advanceTurn(room);
-            } else { advanceTurn(room); }
-          } else { advanceTurn(room); }
-        }
-        const standings = checkGameEnd(room);
-        if (standings) { clearTurnTimer(room); io.to(room.code).emit('game_over', { standings }); return; }
-        sendStateToAll(room);
-        if (room.status === 'playing') startTurnTimer(room);
-        const holdTimer = setTimeout(() => {
-          const p2 = room.players.find(pl => pl.id === socket.id);
-          if (p2 && p2.disconnected) {
-            room.players = room.players.filter(pl => pl.id !== socket.id);
-            room.disconnectTimers.delete(socket.id);
-            if (room.players.filter(pl => !pl.disconnected).length === 0) { clearTurnTimer(room); rooms.delete(room.code); }
-          }
-        }, DISCONNECT_HOLD_MS);
-        room.disconnectTimers.set(socket.id, holdTimer);
-      }
+    const player = room.players.find(p => p.id === socket.id);
+    if (player) player.disconnected = true;
+    clearTurnTimer(room);
+    if (room.players.every(p => p.disconnected)) {
+      for (const timer of room.disconnectTimers.values()) clearTimeout(timer);
+      room.disconnectTimers.clear();
     } else {
-      leaveCurrentRoom(socket);
+      holdDisconnectedPlayer(room, socket.id);
     }
+    io.to(room.code).emit('room_updated', { players: getPlayerInfo(room) });
+    sendStateToAll(room);
+    persistRooms();
     currentRoomCode = null;
     io.emit('room_list', getRoomList());
   });
@@ -803,7 +822,8 @@ io.on('connection', (socket) => {
   }
 });
 
+persistRooms(); // Fail at startup if the persistent directory is not writable.
 server.listen(PORT, () => {
-  console.log(`ZA Card Game server running on port ${PORT}`);
+  console.log(`ZA Card Game server running on port ${server.address().port}`);
   console.log(`Open http://localhost:${PORT} to play`);
 });
